@@ -1,0 +1,25 @@
+name: Descobrir a API do Play Hub
+# Corre manualmente (Actions > este fluxo > Run workflow). Mostra no log a forma dos dados
+# e guarda amostras em "playhub-probe" (separador Artifacts da execução).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Sondar a API
+        run: python ingest_playhub.py --probe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playhub-probe
+          path: raw/probe/
+          if-no-files-found: ignore
