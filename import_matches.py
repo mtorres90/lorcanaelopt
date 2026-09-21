@@ -5,6 +5,9 @@ Colunas obrigatorias:
   event_id, event_name, event_date, store, city, round,
   player_a_id, player_a_name, player_b_id, player_b_name, result
 
+Colunas opcionais (ficam em branco se a fonte nao as tiver):
+  player_a_real_name, player_b_real_name
+
 `result` e A (ganhou o jogador A), B (ganhou o jogador B) ou D (empate).
 Linhas sem player_b_id sao byes e ficam de fora.
 A importacao e idempotente: importar o mesmo ficheiro duas vezes nao duplica nada.
@@ -80,11 +83,15 @@ def main() -> int:
                 (row["event_id"].strip(), row["event_name"].strip(), event_date,
                  row["store"].strip(), row["city"].strip()),
             )
-            for pid, pname in ((a_id, row["player_a_name"]), (b_id, row["player_b_name"])):
+            for pid, pname, prealname in (
+                (a_id, row["player_a_name"], row.get("player_a_real_name", "")),
+                (b_id, row["player_b_name"], row.get("player_b_real_name", "")),
+            ):
                 conn.execute(
-                    "INSERT INTO players(id, name) VALUES (?,?) "
-                    "ON CONFLICT(id) DO UPDATE SET name=excluded.name",
-                    (pid, pname.strip() or pid),
+                    "INSERT INTO players(id, name, real_name) VALUES (?,?,?) "
+                    "ON CONFLICT(id) DO UPDATE SET name=excluded.name, "
+                    "real_name=COALESCE(NULLIF(excluded.real_name, ''), players.real_name)",
+                    (pid, pname.strip() or pid, (prealname or "").strip()),
                 )
             cur = conn.execute(
                 "INSERT OR IGNORE INTO matches(event_id, round, player_a, player_b, score_a) "
