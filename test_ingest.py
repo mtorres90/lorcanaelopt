@@ -16,14 +16,19 @@ from urllib.parse import parse_qs, urlparse
 import ingest_playhub as ing
 
 
-def rel(pid, name, first=None, last=None):
+def rel(pid, name, first=None, last=None, nickname=None):
+    """name e o que a API poe em player.best_identifier (normalmente "Primeiro U.").
+    nickname e o que vai em user_event_status.best_identifier (o nickname real do
+    evento, ex.: "Mimez"); por omissao igual a name, para os testes que nao
+    querem testar especificamente esta distincao."""
     player = {"id": pid, "pronouns": "", "country_code": None, "best_identifier": name}
     if first is not None:
         player["first_name"] = first
     if last is not None:
         player["last_name"] = last
     return {"id": pid * 10, "player_order": 1, "player": player,
-            "user_event_status": {"id": pid * 100, "best_identifier": name, "user": {"id": pid + 5000}}}
+            "user_event_status": {"id": pid * 100, "best_identifier": nickname or name,
+                                  "user": {"id": pid + 5000}}}
 
 
 def match(a, b, winner=None, **flags):
@@ -138,6 +143,18 @@ class ParsingTests(unittest.TestCase):
 
     def test_name_falls_back_to_first_name_and_initial(self):
         self.assertEqual(ing.player_name({"first_name": "Maria", "last_name": "Silva"}), "Maria S.")
+
+    def test_name_prefers_event_nickname_over_abbreviated_identifier(self):
+        # Bug real: player.best_identifier e so "Primeiro U." (ex. "Miguel T"); o
+        # nickname de verdade (ex. "Mimez") esta em user_event_status.best_identifier,
+        # um nivel diferente. player_name() tem de preferir sempre este ultimo.
+        miguel = rel(30947, "Miguel T", nickname="Mimez")
+        self.assertEqual(ing.player_name(miguel), "Mimez")
+
+    def test_name_falls_back_to_abbreviated_identifier_without_nickname(self):
+        # Sem user_event_status (ou sem best_identifier la dentro), cai para o que
+        # havia antes: o identificador do objeto "player".
+        self.assertEqual(ing.player_name({"player": {"best_identifier": "Miguel T"}}), "Miguel T")
 
     def test_real_name_needs_both_first_and_last(self):
         self.assertEqual(ing.player_real_name({"first_name": "Maria", "last_name": "Silva"}), "Maria Silva")
