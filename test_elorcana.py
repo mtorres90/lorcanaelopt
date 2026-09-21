@@ -94,11 +94,13 @@ class FetchTests(unittest.TestCase):
         self.server.server_close()
         self.tmp.cleanup()
 
-    def run_fetch(self, overrides=""):
+    def run_fetch(self, overrides="", min_events=1):
         ov = self.dir / "ov.txt"
         ov.write_text(overrides)
         args = SimpleNamespace(db=self.db, out=str(self.out), opt_out=str(self.dir / "opt.txt"),
-                               overrides=str(ov), base=f"http://127.0.0.1:{self.server.server_port}", delay=0)
+                               overrides=str(ov), base=f"http://127.0.0.1:{self.server.server_port}", delay=0,
+                               date_from="2025-09-05", min_events=min_events,
+                               exclude_events=str(self.dir / "none.txt"), merges=str(self.dir / "none2.txt"))
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(fe.collect(args), 0)
@@ -151,6 +153,11 @@ class FetchTests(unittest.TestCase):
         again = self.run_fetch()
         self.assertEqual(again["100"], first["100"])
 
+    def test_players_below_the_minimum_events_are_not_looked_up(self):
+        got = self.run_fetch(min_events=2)   # todos so jogaram um evento
+        self.assertEqual(got, {})
+        self.assertEqual(Handler.hits, [])
+
     def test_renamed_player_is_looked_up_again(self):
         self.run_fetch()
         conn = db.connect(self.db)
@@ -172,7 +179,8 @@ class BuildTests(unittest.TestCase):
                 "101": {"status": "ambiguous", "name": "Alex"}}}), encoding="utf-8")
             (d / "opt.txt").write_text("")
             args = SimpleNamespace(db=str(d / "t.db"), out=str(d / "index.html"), date_from="2025-09-05",
-                                   date_to=None, min_games=1, opt_out=str(d / "opt.txt"),
+                                   date_to=None, min_games=1, min_events=1, exclude_events=str(d / "x.txt"),
+                                   merges=str(d / "y.txt"), opt_out=str(d / "opt.txt"),
                                    elorcana=str(d / "e.json"), contact="", demo=False)
             with contextlib.redirect_stdout(io.StringIO()):
                 build_web.build(args)
@@ -190,7 +198,8 @@ class BuildTests(unittest.TestCase):
             make_db(str(d / "t.db"), [("100", "Mimez"), ("101", "Alex")])
             (d / "opt.txt").write_text("")
             args = SimpleNamespace(db=str(d / "t.db"), out=str(d / "index.html"), date_from="2025-09-05",
-                                   date_to=None, min_games=1, opt_out=str(d / "opt.txt"),
+                                   date_to=None, min_games=1, min_events=1, exclude_events=str(d / "x.txt"),
+                                   merges=str(d / "y.txt"), opt_out=str(d / "opt.txt"),
                                    elorcana=str(d / "missing.json"), contact="", demo=False)
             with contextlib.redirect_stdout(io.StringIO()):
                 build_web.build(args)

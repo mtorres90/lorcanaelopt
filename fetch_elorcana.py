@@ -34,6 +34,7 @@ import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
+import curate
 from build_site import load_opt_out
 from db import connect
 
@@ -136,9 +137,10 @@ def stale(entry: dict, today: date) -> bool:
 def collect(args) -> int:
     conn = connect(args.db)
     try:
-        rows = conn.execute(
-            "SELECT id, name FROM players WHERE id IN "
-            "(SELECT player_a FROM matches UNION SELECT player_b FROM matches) ORDER BY id").fetchall()
+        matches, _ = curate.load_curated(conn, args, args.date_from)
+        in_site = {p for m in matches for p in (m.player_a, m.player_b)}
+        rows = sorted((r for r in conn.execute("SELECT id, name FROM players") if r["id"] in in_site),
+                      key=lambda r: r["id"])
     finally:
         conn.close()
     hidden = load_opt_out(args.opt_out)
@@ -216,6 +218,9 @@ def main() -> int:
     ap.add_argument("--db", default="data/lorcana.db")
     ap.add_argument("--out", default="raw/elorcana.json")
     ap.add_argument("--opt-out", default="opt_out.txt")
+    # Mesmas regras do site (curate.py), para so procurarmos quem aparece no ranking.
+    ap.add_argument("--from", dest="date_from", default="2025-09-05")
+    curate.add_arguments(ap)
     ap.add_argument("--overrides", default="elorcana_overrides.txt")
     ap.add_argument("--base", default=API_BASE)
     ap.add_argument("--delay", type=float, default=0.3, help="pausa entre pedidos, em segundos")

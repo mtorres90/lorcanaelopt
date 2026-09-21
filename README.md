@@ -9,6 +9,9 @@ The site is available in Portuguese (default) and English; visitors switch with 
 - Only events at stores in **Portugal**.
 - Only the **post-rotation** era: from **2025-09-05**, the release date of Set 9 (Fabled), which started the rotation.
 - Only the **Core Constructed** format by default (change it with `--formats`). Draft, sealed and other booster formats do not count towards the Elo.
+- Players need at least **2 events in Portugal** to count at all (`--min-events`), which leaves out visitors who played a single tournament here. Their matches are ignored, not just hidden.
+- Events listed in `excluded_events.txt` (by name, e.g. `Inkado`, `Crown of Ink Online`) are ignored.
+- Play Hub accounts with the **same nickname** are merged into one player, keeping the account with the most recent tournament (a tie goes to the one with more events). Accounts that ever played the same event are kept separate, since one person can't enter an event twice, and so are abbreviated Play Hub names like `Pedro R`, which many people share. `player_merges.txt` merges accounts with different names by hand, or blocks an automatic merge with `keep <id>`. `--no-auto-merge` turns the automatic merge off.
 
 ## How it works (everything on GitHub, nothing to run on your computer)
 
@@ -35,6 +38,8 @@ The Play Hub blocks requests from browsers on other sites (CORS), so collection 
 | `import_matches.py` | Imports the CSV into SQLite (idempotent, ignores byes, filters dates) |
 | `elo.py` | Elo engine: start at 1500, K=40 for the first 10 matches and K=24 after that, draw = 0.5, rounds calculated with the rating from before the round |
 | `fetch_elorcana.py` | Fetches each player's international Elo from elorcana.com (Play Hub profiles only, matched by nickname) and caches it in `raw/elorcana.json` |
+| `curate.py` | Rules applied before the Elo is calculated: excluded events, merged accounts, minimum events. Used by both the site and the elorcana fetch |
+| `excluded_events.txt`, `player_merges.txt` | Edit these to exclude an event by name or merge two accounts. When the site is built it lists names shared by different ids, to help you spot more duplicates |
 | `build_web.py` | Generates the single page (`index.html`) with ranking, players, events and about |
 | `build_site.py` | Alternative: multi-page site |
 | `make_sample_data.py` | Made-up data for trying things out |

@@ -1,0 +1,13 @@
+# Contas do Play Hub que sao a mesma pessoa.
+#
+# Contas com o MESMO nickname sao fundidas automaticamente, ficando a que tem o torneio mais recente
+# (ver curate.py). Ao gerar a pagina aparece a lista do que foi fundido e do que ficou separado.
+# Este ficheiro serve para os casos que a regra automatica nao apanha ou apanha mal:
+#
+#   <id da conta a remover> <id da conta a manter>    # juntar duas contas com nomes diferentes
+#   keep <id>                                          # esta conta nunca e fundida pelo nome
+#
+# Nomes abreviados do Play Hub (tipo "Pedro R", "Joao M") nao sao fundidos automaticamente, porque
+# muita gente partilha esse nome. Se forem mesmo a mesma pessoa, junta-as aqui, por exemplo:
+#   205926 24374    # Pedro R
+#   143989 492234   # Joao M

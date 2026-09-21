@@ -13,6 +13,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+import curate
 import db
 from build_site import ASSETS_DIR, STYLE_CSS, fold, fmt_date, load_opt_out
 from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING,
@@ -98,7 +99,10 @@ def load_intl(path: str | None) -> tuple[dict[str, dict], str | None]:
 
 def build(args: argparse.Namespace) -> None:
     conn = db.connect(args.db)
-    matches = db.load_matches(conn, args.date_from, args.date_to)
+    ev_rows = {r["id"]: dict(r) for r in conn.execute("SELECT * FROM events")}
+    matches, rep = curate.load_curated(conn, args, args.date_from, args.date_to)
+    for line in rep.lines(args.min_events):
+        print(line)
     stats, history = compute(matches)
     if not stats:
         raise SystemExit("Sem partidas no período indicado. Importa dados primeiro (import_matches.py).")
@@ -108,7 +112,6 @@ def build(args: argparse.Namespace) -> None:
     names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM players")}
     real_names = {r["id"]: r["real_name"] for r in conn.execute("SELECT id, real_name FROM players")
                   if r["real_name"]}
-    ev_rows = {r["id"]: dict(r) for r in conn.execute("SELECT * FROM events")}
 
     visible = [s for s in stats.values() if s.id not in hidden]
     ranked = sorted((s for s in visible if s.games >= args.min_games),
@@ -195,6 +198,7 @@ def main() -> None:
     ap.add_argument("--from", dest="date_from", default="2025-09-05")
     ap.add_argument("--to", dest="date_to", default=None)
     ap.add_argument("--min-games", type=int, default=5)
+    curate.add_arguments(ap)   # regras de curate.py
     ap.add_argument("--opt-out", default="opt_out.txt")
     ap.add_argument("--elorcana", default="raw/elorcana.json",
                     help="Elo internacional obtido por fetch_elorcana.py (opcional)")

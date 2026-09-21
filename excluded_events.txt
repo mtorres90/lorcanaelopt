@@ -1,0 +1,4 @@
+# Eventos que NAO contam para o ranking. Um texto por linha; basta o nome do evento conter o texto
+# (sem maiusculas, acentos nem pontuacao: "Crown of ink - online" tambem corresponde a "crown of ink online").
+inkado
+crown of ink online

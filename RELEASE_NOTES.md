@@ -1,5 +1,18 @@
 # Release notes
 
+## 2026-09-21 (third release): Cleaner player list
+
+### Changed
+
+- **Only players with at least 2 events in Portugal count.** Visitors who played a single tournament here (for
+  example a foreign player at one regional) no longer appear, and their matches no longer affect anyone's Elo.
+  Set with `--min-events` (default 2; `1` turns it off).
+- **`Inkado` and `Crown of Ink Online` events are excluded** from everything (17 events). They are matched by event
+  name, so the store that hosts them (which also runs normal events) is unaffected. The list is
+  `excluded_events.txt`.
+- **Accounts with the same nickname are merged automatically**, keeping the one with the most recent tournament. On the current data this joins 6 players (Brudah, Diogo Santos, Filipe Estrada, Pedro, RichardBlackEye, Tadashi). Accounts that ever played the same event stay separate (one person can't enter an event twice), and so do abbreviated Play Hub names like `Pedro R` and `João M`, which many people share. When the page is built it lists what was merged and what was left apart. `player_merges.txt` merges other accounts by hand, or blocks a merge with `keep <id>`.
+- Ratings shift a little because of the above (on the current data, about 11% fewer matches are counted, 5,850 down to 5,232).
+
 ## 2026-09-21 (second release): International Elo
 
 ### Changed
