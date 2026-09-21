@@ -44,7 +44,8 @@ SEARCH_CENTERS = [
 ]
 
 CSV_COLUMNS = ["event_id", "event_name", "event_date", "store", "city", "round",
-               "player_a_id", "player_a_name", "player_b_id", "player_b_name", "result"]
+               "player_a_id", "player_a_name", "player_a_real_name",
+               "player_b_id", "player_b_name", "player_b_real_name", "result"]
 
 
 # ---------- utilitarios de parsing (tolerantes a variacoes de nomes) ----------
@@ -122,7 +123,7 @@ def player_key(p: dict) -> str:
 
 
 def player_name(p: dict) -> str:
-    """Nome a mostrar: nome de utilizador; senao primeiro nome + inicial do apelido."""
+    """Nome a mostrar (normalmente o nickname do Play Hub); senao primeiro nome + inicial do apelido."""
     shown = dig(p, "best_identifier", "display_name", "username", "user.username", "screen_name", "name")
     if shown:
         return str(shown).strip()
@@ -131,8 +132,19 @@ def player_name(p: dict) -> str:
     return f"{first} {last[:1]}.".strip() if first else ""
 
 
+def player_real_name(p: dict) -> str:
+    """Nome completo (primeiro + apelido), quando a API o disponibiliza separado do
+    nickname. Fica vazio se faltar qualquer uma das partes, para nao mostrar um nome
+    a meio (ex.: so o primeiro nome)."""
+    first = str(dig(p, "first_name", "user.first_name", default="")).strip()
+    last = str(dig(p, "last_name", "user.last_name", default="")).strip()
+    return f"{first} {last}".strip() if first and last else ""
+
+
 def parse_match(m: dict):
-    """Devolve (a_id, a_nome, b_id, b_nome, resultado A/B/D) ou None (bye/sem resultado).
+    """Devolve (a_id, a_nome, a_nome_real, b_id, b_nome, b_nome_real, resultado A/B/D)
+    ou None (bye/sem resultado). Os "nome_real" ficam em branco quando a API nao
+    tem first_name/last_name separados do nickname (o caso mais comum).
 
     Campos reais do Play Hub: player_match_relationships[].player.{id,best_identifier},
     winning_player (id do jogador), match_is_intentional_draw, match_is_unintentional_draw,
@@ -172,7 +184,7 @@ def parse_match(m: dict):
             result = "A" if ga > gb else "B" if gb > ga else "D"
     if result is None:
         return None
-    return a_id, player_name(a), b_id, player_name(b), result
+    return a_id, player_name(a), player_real_name(a), b_id, player_name(b), player_real_name(b), result
 
 
 def round_ids_of(detail: dict) -> list[tuple[int, str]]:
@@ -326,9 +338,10 @@ def collect(args) -> int:
                         if not parsed:
                             stats["byes_ou_sem_resultado"] += 1
                             continue
-                        a_id, a_name, b_id, b_name, result = parsed
+                        a_id, a_name, a_real, b_id, b_name, b_real, result = parsed
                         rows.append([ev["id"], dig(detail, "name", default=dig(ev, "name", default="")),
-                                     day, store_name, city, number, a_id, a_name, b_id, b_name, result])
+                                     day, store_name, city, number, a_id, a_name, a_real,
+                                     b_id, b_name, b_real, result])
                         stats["partidas"] += 1
                         used = True
                         events_of_player.setdefault(a_id, set()).add(ev["id"])
