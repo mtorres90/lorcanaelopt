@@ -104,9 +104,12 @@ def event_date_of(event: dict) -> str | None:
 
 
 def matches_format(event: dict, tokens: list[str]) -> bool:
-    """Procura os textos de formato nos campos do evento (sem a descricao nem a loja)."""
+    """Formato de jogo aceite? Usa gameplay_format.name; sem ele, procura nos restantes campos."""
     if not tokens:
         return True
+    name = dig(event, "gameplay_format.name")
+    if name:
+        return any(t in str(name).lower() for t in tokens)
     skip = {"store", "description", "full_address"}
     text = json.dumps({k: v for k, v in event.items() if k not in skip}, ensure_ascii=False).lower()
     return any(t in text for t in tokens)
@@ -129,28 +132,40 @@ def player_name(p: dict) -> str:
 
 
 def parse_match(m: dict):
-    """Devolve (a_id, a_nome, b_id, b_nome, resultado A/B/D) ou None (bye/sem resultado)."""
+    """Devolve (a_id, a_nome, b_id, b_nome, resultado A/B/D) ou None (bye/sem resultado).
+
+    Campos reais do Play Hub: player_match_relationships[].player.{id,best_identifier},
+    winning_player (id do jogador), match_is_intentional_draw, match_is_unintentional_draw,
+    match_is_bye. Perdas duplas e partidas sem resultado registado ficam de fora.
+    """
+    if m.get("match_is_bye"):
+        return None
     rels = m.get("player_match_relationships") or m.get("players") or []
-    if m.get("match_is_bye") or len(rels) < 2:
+    if len(rels) < 2 or not all(isinstance(r, dict) for r in rels[:2]):
         return None
     a_rel, b_rel = rels[0], rels[1]
     a = a_rel.get("player") if isinstance(a_rel.get("player"), dict) else a_rel
     b = b_rel.get("player") if isinstance(b_rel.get("player"), dict) else b_rel
     a_id, b_id = player_key(a), player_key(b)
-    if not a_id or not b_id:
+    if not a_id or not b_id or a_id == b_id:
         return None
 
     result = None
     winner = m.get("winning_player")
     if isinstance(winner, dict):
         winner = player_key(winner)
-    if m.get("match_is_intentional_draw"):
+    if winner not in (None, "", 0):
+        w = str(winner)
+        if w == a_id:
+            result = "A"
+        elif w == b_id:
+            result = "B"
+        elif w == str(a_rel.get("id", "")):
+            result = "A"
+        elif w == str(b_rel.get("id", "")):
+            result = "B"
+    if result is None and (m.get("match_is_intentional_draw") or m.get("match_is_unintentional_draw")):
         result = "D"
-    elif winner not in (None, ""):
-        winner = str(winner)
-        ids_a = {a_id, str(a_rel.get("id", "")), str(a.get("id", ""))}
-        ids_b = {b_id, str(b_rel.get("id", "")), str(b.get("id", ""))}
-        result = "A" if winner in ids_a else "B" if winner in ids_b else None
     if result is None:
         ga, gb = a_rel.get("games_won"), b_rel.get("games_won")
         if isinstance(ga, int) and isinstance(gb, int):
@@ -161,20 +176,20 @@ def parse_match(m: dict):
 
 
 def round_ids_of(detail: dict) -> list[tuple[int, str]]:
-    """[(numero_da_ronda, id_da_ronda)] a partir do detalhe do evento."""
+    """[(numero_da_ronda, id_da_ronda)], com numeracao continua entre fases.
+
+    Um evento pode ter varias fases (ex.: suico + top cut) e cada uma recomeca na ronda 1;
+    sem numeracao continua, rondas de fases diferentes seriam calculadas como simultaneas.
+    """
+    phases = sorted(detail.get("tournament_phases") or [],
+                    key=lambda ph: (ph.get("order_in_phases") is None, ph.get("order_in_phases") or 0))
     rounds = []
-    phases = detail.get("tournament_phases") or []
     for phase in phases:
-        for r in phase.get("rounds") or []:
-            rounds.append(r)
+        rounds.extend(sorted(phase.get("rounds") or [],
+                             key=lambda r: (r.get("round_number") is None, r.get("round_number") or 0)))
     if not rounds:
         rounds = detail.get("rounds") or []
-    out = []
-    for i, r in enumerate(rounds, start=1):
-        rid = dig(r, "id")
-        if rid is not None:
-            out.append((int(dig(r, "round_number", default=i)), str(rid)))
-    return out
+    return [(i, str(r["id"])) for i, r in enumerate(rounds, start=1) if r.get("id") is not None]
 
 
 # ---------- cliente HTTP com cache e cortesia ----------
@@ -226,7 +241,7 @@ def event_list_params(lat, lon, miles, page, page_size=100):
             "upcoming_only": "false", "page": page, "page_size": page_size}
 
 
-def iter_events(client: Client, max_pages: int = 60):
+def iter_events(client: Client, max_pages: int = 300):
     seen = set()
     for lat, lon, miles in SEARCH_CENTERS:
         for page in range(1, max_pages + 1):
@@ -248,12 +263,16 @@ def collect(args) -> int:
     date_from = args.date_from
     date_to = args.date_to or (date.today() - timedelta(days=1)).isoformat()
     tokens = [t.strip().lower() for t in args.formats.split(",") if t.strip()]
-    stats = {"eventos_vistos": 0, "pais_errado": 0, "fora_do_periodo": 0, "formato_excluido": 0,
+    stats = {"eventos_vistos": 0, "teste_ou_modelo": 0, "pais_errado": 0, "fora_do_periodo": 0, "formato_excluido": 0,
              "sem_rondas": 0, "eventos_usados": 0, "partidas": 0, "byes_ou_sem_resultado": 0}
 
     rows = []
+    events_of_player: dict[str, set] = {}
     for ev in iter_events(client):
         stats["eventos_vistos"] += 1
+        if ev.get("is_test_event") or ev.get("is_template"):
+            stats["teste_ou_modelo"] += 1
+            continue
         if country_of(ev) != args.country:
             stats["pais_errado"] += 1
             continue
@@ -271,7 +290,8 @@ def collect(args) -> int:
             continue
         store = detail.get("store") if isinstance(detail.get("store"), dict) else (ev.get("store") or {})
         store_name = dig(store, "name", default="")
-        city = dig(store, "city", "administrative_area_level_2", default="")
+        list_store = ev.get("store") if isinstance(ev.get("store"), dict) else {}
+        city = dig(list_store, "city", default=dig(store, "city", default=""))
         used = False
         for number, rid in rounds:
             page = 1
@@ -288,6 +308,8 @@ def collect(args) -> int:
                                  day, store_name, city, number, a_id, a_name, b_id, b_name, result])
                     stats["partidas"] += 1
                     used = True
+                    events_of_player.setdefault(a_id, set()).add(ev["id"])
+                    events_of_player.setdefault(b_id, set()).add(ev["id"])
                 if not (isinstance(data, dict) and data.get("next")):
                     break
                 page += 1
@@ -300,6 +322,9 @@ def collect(args) -> int:
         w.writerow(CSV_COLUMNS)
         w.writerows(rows)
     print("Resumo:", ", ".join(f"{k}={v}" for k, v in stats.items()), f"| pedidos={client.requests}")
+    repeat = sum(1 for evs in events_of_player.values() if len(evs) > 1)
+    print(f"Jogadores distintos={len(events_of_player)}, em mais de um evento={repeat} "
+          "(se for ~0, o id do jogador e por evento e nao serve para o Elo)")
     print(f"CSV escrito em {out}")
     return 0 if rows else 2
 
