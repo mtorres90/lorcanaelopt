@@ -204,13 +204,17 @@ class Client:
     def _cache_path(self, url: str) -> Path:
         return self.cache_dir / (hashlib.sha1(url.encode()).hexdigest() + ".json")
 
-    def get(self, path: str, params: dict | None = None, cache: bool = True):
+    def get(self, path: str, params: dict | None = None, cache: bool = True, ignore_404: bool = False):
+        """Pede um caminho da API. Com ignore_404=True, um 404 devolve None em vez de
+        rebentar a recolha inteira — usado onde um unico evento ou ronda invulgar
+        (ex.: bracket de eliminacao direta, ronda cancelada) nao deve travar tudo o resto."""
         url = f"{self.base}/{path.lstrip('/')}"
         if params:
             url += ("&" if "?" in url else "?") + urllib.parse.urlencode(params)
         cp = self._cache_path(url)
         if cache and cp.exists():
-            return json.loads(cp.read_text(encoding="utf-8"))
+            cached = json.loads(cp.read_text(encoding="utf-8"))
+            return None if cached == {"__404__": True} else cached
         last_err = None
         for attempt in range(4):
             time.sleep(self.delay)
@@ -225,6 +229,11 @@ class Client:
                 return data
             except urllib.error.HTTPError as e:
                 last_err = e
+                if e.code == 404 and ignore_404:
+                    if cache:
+                        cp.parent.mkdir(parents=True, exist_ok=True)
+                        cp.write_text(json.dumps({"__404__": True}), encoding="utf-8")
+                    return None
                 if e.code in (404, 400, 401, 403):
                     break
                 time.sleep(2 ** attempt)
@@ -264,12 +273,16 @@ def collect(args) -> int:
     date_to = args.date_to or (date.today() - timedelta(days=1)).isoformat()
     tokens = [t.strip().lower() for t in args.formats.split(",") if t.strip()]
     stats = {"eventos_vistos": 0, "teste_ou_modelo": 0, "pais_errado": 0, "fora_do_periodo": 0, "formato_excluido": 0,
-             "sem_rondas": 0, "eventos_usados": 0, "partidas": 0, "byes_ou_sem_resultado": 0}
+             "sem_rondas": 0, "evento_404": 0, "ronda_404": 0, "evento_com_erro": 0,
+             "eventos_usados": 0, "partidas": 0, "byes_ou_sem_resultado": 0}
 
     rows = []
     events_of_player: dict[str, set] = {}
     for ev in iter_events(client):
         stats["eventos_vistos"] += 1
+        if stats["eventos_vistos"] % 50 == 0:
+            print(f"  ... {stats['eventos_vistos']} eventos vistos, {stats['eventos_usados']} usados, "
+                  f"{stats['partidas']} partidas, {client.requests} pedidos", flush=True)
         if ev.get("is_test_event") or ev.get("is_template"):
             stats["teste_ou_modelo"] += 1
             continue
@@ -283,37 +296,51 @@ def collect(args) -> int:
         if not matches_format(ev, tokens):
             stats["formato_excluido"] += 1
             continue
-        detail = client.get(f"events/{ev['id']}/")
-        rounds = round_ids_of(detail)
-        if not rounds:
-            stats["sem_rondas"] += 1
+
+        # Um evento invulgar (bracket num formato diferente, registo corrompido, etc.) nao
+        # deve derrubar uma recolha que pode demorar horas: falha nesse evento e segue em frente.
+        try:
+            detail = client.get(f"events/{ev['id']}/", ignore_404=True)
+            if detail is None:
+                stats["evento_404"] += 1
+                continue
+            rounds = round_ids_of(detail)
+            if not rounds:
+                stats["sem_rondas"] += 1
+                continue
+            store = detail.get("store") if isinstance(detail.get("store"), dict) else (ev.get("store") or {})
+            store_name = dig(store, "name", default="")
+            list_store = ev.get("store") if isinstance(ev.get("store"), dict) else {}
+            city = dig(list_store, "city", default=dig(store, "city", default=""))
+            used = False
+            for number, rid in rounds:
+                page = 1
+                while True:
+                    data = client.get(f"tournament-rounds/{rid}/matches/paginated/",
+                                      {"page": page, "page_size": 100}, ignore_404=True)
+                    if data is None:
+                        stats["ronda_404"] += 1
+                        break
+                    for m in items_of(data):
+                        parsed = parse_match(m)
+                        if not parsed:
+                            stats["byes_ou_sem_resultado"] += 1
+                            continue
+                        a_id, a_name, b_id, b_name, result = parsed
+                        rows.append([ev["id"], dig(detail, "name", default=dig(ev, "name", default="")),
+                                     day, store_name, city, number, a_id, a_name, b_id, b_name, result])
+                        stats["partidas"] += 1
+                        used = True
+                        events_of_player.setdefault(a_id, set()).add(ev["id"])
+                        events_of_player.setdefault(b_id, set()).add(ev["id"])
+                    if not (isinstance(data, dict) and data.get("next")):
+                        break
+                    page += 1
+            stats["eventos_usados"] += used
+        except RuntimeError as e:
+            stats["evento_com_erro"] += 1
+            print(f"  aviso: evento {ev['id']} falhou e foi ignorado ({e})", flush=True)
             continue
-        store = detail.get("store") if isinstance(detail.get("store"), dict) else (ev.get("store") or {})
-        store_name = dig(store, "name", default="")
-        list_store = ev.get("store") if isinstance(ev.get("store"), dict) else {}
-        city = dig(list_store, "city", default=dig(store, "city", default=""))
-        used = False
-        for number, rid in rounds:
-            page = 1
-            while True:
-                data = client.get(f"tournament-rounds/{rid}/matches/paginated/",
-                                  {"page": page, "page_size": 100})
-                for m in items_of(data):
-                    parsed = parse_match(m)
-                    if not parsed:
-                        stats["byes_ou_sem_resultado"] += 1
-                        continue
-                    a_id, a_name, b_id, b_name, result = parsed
-                    rows.append([ev["id"], dig(detail, "name", default=dig(ev, "name", default="")),
-                                 day, store_name, city, number, a_id, a_name, b_id, b_name, result])
-                    stats["partidas"] += 1
-                    used = True
-                    events_of_player.setdefault(a_id, set()).add(ev["id"])
-                    events_of_player.setdefault(b_id, set()).add(ev["id"])
-                if not (isinstance(data, dict) and data.get("next")):
-                    break
-                page += 1
-        stats["eventos_usados"] += used
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -389,7 +416,14 @@ def probe(args) -> int:
         print(f"\nPartidas na ronda {rid}: {len(ms)}")
         if ms:
             print("Forma de uma partida (so chaves):", summarize(ms[0]))
-            print("Interpretada como:", parse_match(ms[0]))
+            parsed = parse_match(ms[0])
+            if parsed:
+                a_id, _, b_id, _, result = parsed
+                # Nomes ocultos de proposito: este log fica no historico de execucoes do
+                # GitHub Actions, que e publico num repositorio publico.
+                print(f"Interpretada como: ({a_id!r}, '<nome oculto>', {b_id!r}, '<nome oculto>', {result!r})")
+            else:
+                print("Interpretada como: None (bye, sem resultado registado, ou forma inesperada)")
     print("\nFicheiros brutos guardados em raw/probe/")
     return 0
 
