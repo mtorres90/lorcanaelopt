@@ -16,9 +16,13 @@ from urllib.parse import parse_qs, urlparse
 import ingest_playhub as ing
 
 
-def rel(pid, name):
-    return {"id": pid * 10, "player_order": 1,
-            "player": {"id": pid, "pronouns": "", "country_code": None, "best_identifier": name},
+def rel(pid, name, first=None, last=None):
+    player = {"id": pid, "pronouns": "", "country_code": None, "best_identifier": name}
+    if first is not None:
+        player["first_name"] = first
+    if last is not None:
+        player["last_name"] = last
+    return {"id": pid * 10, "player_order": 1, "player": player,
             "user_event_status": {"id": pid * 100, "best_identifier": name, "user": {"id": pid + 5000}}}
 
 
@@ -40,7 +44,8 @@ def ev(eid, name, day, fmt, st):
             "is_test_event": False, "is_template": False}
 
 
-ANA, BRUNO, CARLA, DIOGO = rel(1, "Ana P"), rel(2, "Bruno M"), rel(3, "Carla S"), rel(4, "Diogo L")
+ANA = rel(1, "Ana P", first="Ana", last="Pereira")  # tem nickname E nome completo separados
+BRUNO, CARLA, DIOGO = rel(2, "Bruno M"), rel(3, "Carla S"), rel(4, "Diogo L")
 
 EVENTS = [
     ev(1, "Liga Core", "2025-10-04", "Core Constructed", store("Lisboa")),
@@ -114,13 +119,14 @@ class ParsingTests(unittest.TestCase):
         self.assertEqual(ing.country_of(EVENTS[3]), "CH")
 
     def test_winner_uses_player_id(self):
-        self.assertEqual(ing.parse_match(MATCHES[101][0]), ("1", "Ana P", "2", "Bruno M", "A"))
-        self.assertEqual(ing.parse_match(MATCHES[102][0])[4], "B")
+        self.assertEqual(ing.parse_match(MATCHES[101][0]),
+                          ("1", "Ana P", "Ana Pereira", "2", "Bruno M", "", "A"))
+        self.assertEqual(ing.parse_match(MATCHES[102][0])[6], "B")
 
     def test_draw_flags(self):
-        self.assertEqual(ing.parse_match(MATCHES[101][1])[4], "D")
+        self.assertEqual(ing.parse_match(MATCHES[101][1])[6], "D")
         m = match(ANA, BRUNO, match_is_unintentional_draw=True)
-        self.assertEqual(ing.parse_match(m)[4], "D")
+        self.assertEqual(ing.parse_match(m)[6], "D")
 
     def test_bye_unreported_and_double_loss_are_skipped(self):
         self.assertIsNone(ing.parse_match(MATCHES[102][1]))
@@ -128,10 +134,15 @@ class ParsingTests(unittest.TestCase):
         self.assertIsNone(ing.parse_match(MATCHES[103][2]))
 
     def test_winner_with_loss_flag_still_counts(self):
-        self.assertEqual(ing.parse_match(match(ANA, BRUNO, winner=1, match_is_loss=True))[4], "A")
+        self.assertEqual(ing.parse_match(match(ANA, BRUNO, winner=1, match_is_loss=True))[6], "A")
 
     def test_name_falls_back_to_first_name_and_initial(self):
         self.assertEqual(ing.player_name({"first_name": "Maria", "last_name": "Silva"}), "Maria S.")
+
+    def test_real_name_needs_both_first_and_last(self):
+        self.assertEqual(ing.player_real_name({"first_name": "Maria", "last_name": "Silva"}), "Maria Silva")
+        self.assertEqual(ing.player_real_name({"first_name": "Maria"}), "")
+        self.assertEqual(ing.player_real_name({}), "")
 
     def test_format_filter_uses_gameplay_format_name(self):
         self.assertTrue(ing.matches_format(EVENTS[0], ["core constructed"]))
@@ -211,6 +222,8 @@ class PipelineTest(unittest.TestCase):
                 self.assertEqual([(r["round"], r["result"]) for r in rows],
                                  [("1", "A"), ("1", "D"), ("2", "B"), ("4", "B")])
                 self.assertEqual(rows[0]["city"], "Lisboa")
+                self.assertEqual(rows[0]["player_a_real_name"], "Ana Pereira")
+                self.assertEqual(rows[0]["player_b_real_name"], "")
                 self.assertIn("evento_404=1", buf.getvalue())    # evento 6: detalhe 404
                 self.assertIn("ronda_404=1", buf.getvalue())     # ronda 999: partidas 404
                 self.assertIn("evento_com_erro=0", buf.getvalue())
