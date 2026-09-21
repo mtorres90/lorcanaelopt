@@ -11,9 +11,12 @@ Regras:
 - Empate vale 0.5. Byes (sem adversario) e partidas contra si proprio
   sao ignorados.
 - K e maior enquanto o jogador tem poucas partidas (rating provisorio).
+- K tambem escala com o tamanho do evento (numero de jogadores distintos):
+  eventos ate 16 jogadores sao a base (x1), 17-32 valem x1.25, 33+ valem x1.5.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
 
@@ -21,6 +24,20 @@ START_RATING = 1000.0
 PROVISIONAL_GAMES = 10
 K_PROVISIONAL = 40.0
 K_STABLE = 24.0
+
+# Field-size tiers: matches at a deeper event move rating more, since beating a
+# bigger field is a stronger signal than the same record at a small local.
+# Events with up to 16 distinct players are the baseline (x1); anything smaller
+# is not penalised, only bigger fields are boosted.
+EVENT_SIZE_TIERS = ((33, 1.5), (17, 1.25))
+
+
+def event_k_multiplier(n_players: int) -> float:
+    """K multiplier for an event with `n_players` distinct participants."""
+    for threshold, mult in EVENT_SIZE_TIERS:
+        if n_players >= threshold:
+            return mult
+    return 1.0
 
 
 def expected_score(rating: float, opponent: float) -> float:
@@ -230,14 +247,21 @@ def compute(matches) -> tuple[dict[str, PlayerStats], list[HistoryRow]]:
     valid = [m for m in matches if m.player_a and m.player_b and m.player_a != m.player_b]
     ordered = sorted(valid, key=lambda m: (m.date, m.event_id, m.round, m.id))
 
+    event_players: dict[str, set[str]] = defaultdict(set)
+    for m in valid:
+        event_players[m.event_id].add(m.player_a)
+        event_players[m.event_id].add(m.player_b)
+    event_mult = {eid: event_k_multiplier(len(ps)) for eid, ps in event_players.items()}
+
     for _, group in groupby(ordered, key=lambda m: (m.date, m.event_id, m.round)):
         updates = []
         for m in group:
             a, b = get(m.player_a), get(m.player_b)
+            mult = event_mult[m.event_id]
             expected_a = expected_score(a.rating, b.rating)
             score_b = 1.0 - m.score_a
-            new_a = a.rating + k_factor(a.games) * (m.score_a - expected_a)
-            new_b = b.rating + k_factor(b.games) * (score_b - (1.0 - expected_a))
+            new_a = a.rating + k_factor(a.games) * mult * (m.score_a - expected_a)
+            new_b = b.rating + k_factor(b.games) * mult * (score_b - (1.0 - expected_a))
             history.append(HistoryRow(a.id, m.id, m.date, m.event_id, m.round, b.id,
                                       m.score_a, a.rating, new_a, b.rating))
             history.append(HistoryRow(b.id, m.id, m.date, m.event_id, m.round, a.id,
