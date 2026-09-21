@@ -42,6 +42,38 @@
       standingRanked: '{ord} out of {ranked} ranked players.',
       standingUnranked: 'Not yet ranked: needs {min} matches, has {games}.',
       currentElo: 'Current Elo',
+      // achievements
+      achH: 'Achievements', achSummary: '{n} of {total} unlocked', achNone: 'No achievements unlocked yet.',
+      achEarned: 'Earned {date}', achLevelOf: 'Level {l} of {n}', achNext: 'Next: {desc}',
+      achLockedH: 'Locked ({n})', achPct: '{pct}% of players',
+      rar_common: 'Common', rar_uncommon: 'Uncommon', rar_rare: 'Rare', rar_epic: 'Epic', rar_legendary: 'Legendary',
+      achCat_location: 'Stores', achCat_participation: 'Participation', achCat_streak: 'Streaks',
+      achCat_rivalry: 'Rivalry', achCat_elo: 'Elo', achCat_events: 'Events', achCat_awards: 'Awards',
+      achCat_loyalty: 'Loyalty',
+      ach_stores_n: 'Explorer', ach_stores_d: 'Play at {n} different stores',
+      ach_home_n: 'Home turf', ach_home_d: 'Play {n} matches at the same store',
+      ach_cities_n: 'Road trip', ach_cities_d: 'Play in {n} different cities',
+      ach_matches_n: 'Regular', ach_matches_d: 'Play {n} matches',
+      ach_events_n: 'Circuit player', ach_events_d: 'Play {n} events',
+      ach_wins_n: 'Winner', ach_wins_d: 'Win {n} matches',
+      ach_streak_n: 'On a roll', ach_streak_d: 'Win {n} matches in a row',
+      ach_opponents_n: 'Social butterfly', ach_opponents_d: 'Play against {n} different opponents',
+      ach_rival_n: 'Rivalry', ach_rival_d: 'Play {n} matches against the same opponent',
+      ach_heartbreaker_n: 'Heartbreaker', ach_heartbreaker_d: 'Beat the same opponent 3 times',
+      ach_slayer_n: 'Nemesis slayer', ach_slayer_d: 'Beat an opponent who had beaten you 3 or more times',
+      ach_peak_n: 'Peak Elo', ach_peak_d: 'Reach {n} Elo',
+      ach_climb_n: 'Climber', ach_climb_d: 'Gain {n} Elo in one season (with 15+ matches in it)',
+      ach_goliath_n: 'David vs Goliath', ach_goliath_d: 'Beat an opponent rated {n}+ Elo above you',
+      ach_undefeated_n: 'Flawless', ach_undefeated_d: 'Events finished without losing a match (3+ matches each): {n}',
+      ach_debut_n: 'Flawless debut', ach_debut_d: 'Finish your first event without losing a match (3+ matches)',
+      ach_bigroom_n: 'Big room', ach_bigroom_d: 'Play an event with 32 or more players',
+      ach_comeback_n: 'Comeback kid', ach_comeback_d: 'Win a match after losing 3 in a row',
+      ach_rubber_n: 'Rubber match', ach_rubber_d: 'Win a match in the final round of an event (3+ rounds)',
+      ach_potw_n: 'Player of the week', ach_potw_d: 'Player of the week: {n}×',
+      ach_improved_n: 'Most improved', ach_improved_d: 'Win the Most improved prize of a season',
+      ach_podium_n: 'On the podium', ach_podium_d: 'Finish in the top 3 of Most improved in a season',
+      ach_founder_n: 'Founding member', ach_founder_d: 'Play in the first season',
+      ach_seasons_n: 'Season veteran', ach_seasons_d: 'Play in {n} different seasons',
       awardsTitle: 'Player of the week',
       awardsLead: 'Each week (Monday to Sunday) the title goes to the player who gained the most Elo, with at least {min} matches that week and a positive gain. Each season starts when a new set is released; when the next set comes out, the player who improved the most that season gets the Most improved prize.',
       awardsLast: 'Last week', awardsNow: 'This week so far',
@@ -88,6 +120,8 @@
       aboutRank: 'Players with at least {min} matches. Others appear at the bottom of the table, unranked.',
       aboutAwardsH: 'Awards',
       aboutAwards: 'The Player of the week page names the player who gained the most Elo each week and the player who improved the most in each season. Seasons follow the release of new sets.',
+      aboutAchH: 'Achievements',
+      aboutAch: 'Each player page lists the achievements the player has unlocked, such as playing at several stores or winning many matches in a row. Many come in levels. The rarity of each one (Common to Legendary) depends on the share of players who have it.',
       aboutIntlH: 'International Elo',
       aboutIntl: 'Where available, each player page also shows the international Elo from {site}, which rates players worldwide using official Play Hub events. It is a separate rating from the Portugal Elo on this site and is shown for reference only.',
       aboutPrivH: 'Privacy',
@@ -116,6 +150,38 @@
       standingRanked: '{ord} de {ranked} jogadores classificados.',
       standingUnranked: 'Ainda sem classifica\u00e7\u00e3o: precisa de {min} partidas, tem {games}.',
       currentElo: 'Elo atual',
+      // conquistas
+      achH: 'Conquistas', achSummary: '{n} de {total} desbloqueadas', achNone: 'Ainda não há conquistas desbloqueadas.',
+      achEarned: 'Conseguida em {date}', achLevelOf: 'Nível {l} de {n}', achNext: 'Seguinte: {desc}',
+      achLockedH: 'Por desbloquear ({n})', achPct: '{pct}% dos jogadores',
+      rar_common: 'Comum', rar_uncommon: 'Incomum', rar_rare: 'Raro', rar_epic: 'Épico', rar_legendary: 'Lendário',
+      achCat_location: 'Lojas', achCat_participation: 'Participação', achCat_streak: 'Sequências',
+      achCat_rivalry: 'Rivalidade', achCat_elo: 'Elo', achCat_events: 'Eventos', achCat_awards: 'Prémios',
+      achCat_loyalty: 'Fidelidade',
+      ach_stores_n: 'Explorador', ach_stores_d: 'Joga em {n} lojas diferentes',
+      ach_home_n: 'Em casa', ach_home_d: 'Joga {n} partidas na mesma loja',
+      ach_cities_n: 'Em viagem', ach_cities_d: 'Joga em {n} cidades diferentes',
+      ach_matches_n: 'Habitual', ach_matches_d: 'Joga {n} partidas',
+      ach_events_n: 'Circuito', ach_events_d: 'Joga {n} eventos',
+      ach_wins_n: 'Vencedor', ach_wins_d: 'Vence {n} partidas',
+      ach_streak_n: 'Em série', ach_streak_d: 'Vence {n} partidas seguidas',
+      ach_opponents_n: 'Sociável', ach_opponents_d: 'Joga contra {n} adversários diferentes',
+      ach_rival_n: 'Rivalidade', ach_rival_d: 'Joga {n} partidas contra o mesmo adversário',
+      ach_heartbreaker_n: 'Quebra-corações', ach_heartbreaker_d: 'Vence 3 vezes o mesmo adversário',
+      ach_slayer_n: 'Vingança', ach_slayer_d: 'Vence um adversário que já te tinha vencido 3 ou mais vezes',
+      ach_peak_n: 'Elo máximo', ach_peak_d: 'Chega aos {n} de Elo',
+      ach_climb_n: 'Escalada', ach_climb_d: 'Ganha {n} de Elo numa época (com 15+ partidas nela)',
+      ach_goliath_n: 'David contra Golias', ach_goliath_d: 'Vence um adversário com {n}+ de Elo acima do teu',
+      ach_undefeated_n: 'Sem perder', ach_undefeated_d: 'Eventos terminados sem perder uma partida (3+ partidas cada): {n}',
+      ach_debut_n: 'Estreia perfeita', ach_debut_d: 'Termina o teu primeiro evento sem perder uma partida (3+ partidas)',
+      ach_bigroom_n: 'Sala cheia', ach_bigroom_d: 'Joga um evento com 32 ou mais jogadores',
+      ach_comeback_n: 'Recuperação', ach_comeback_d: 'Vence uma partida depois de perderes 3 seguidas',
+      ach_rubber_n: 'Decisão', ach_rubber_d: 'Vence uma partida na última ronda de um evento (3+ rondas)',
+      ach_potw_n: 'Jogador da semana', ach_potw_d: 'Jogador da semana: {n}×',
+      ach_improved_n: 'Mais evoluído', ach_improved_d: 'Ganha o prémio de Mais evoluído de uma época',
+      ach_podium_n: 'No pódio', ach_podium_d: 'Fica no top 3 de Mais evoluído numa época',
+      ach_founder_n: 'Membro fundador', ach_founder_d: 'Joga na primeira época',
+      ach_seasons_n: 'Veterano', ach_seasons_d: 'Joga em {n} épocas diferentes',
       awardsTitle: 'Jogador da semana',
       awardsLead: 'Em cada semana (de segunda a domingo) o título vai para o jogador que mais Elo ganhou, com pelo menos {min} partidas nessa semana e um ganho positivo. Cada época começa quando sai um set novo; quando o set seguinte sai, o jogador que mais evoluiu nessa época recebe o prémio de Mais evoluído.',
       awardsLast: 'Semana passada', awardsNow: 'Esta semana até agora',
@@ -160,6 +226,8 @@
       aboutRank: 'Jogadores com pelo menos {min} partidas. Os restantes aparecem no fim da tabela, sem classifica\u00e7\u00e3o.',
       aboutAwardsH: 'Prémios',
       aboutAwards: 'A página Jogador da semana mostra quem mais Elo ganhou em cada semana e quem mais evoluiu em cada época. As épocas seguem o lançamento de novos sets.',
+      aboutAchH: 'Conquistas',
+      aboutAch: 'A página de cada jogador mostra as conquistas que desbloqueou, como jogar em várias lojas ou vencer muitas partidas seguidas. Muitas têm níveis. A raridade de cada uma (de Comum a Lendário) depende da percentagem de jogadores que a tem.',
       aboutIntlH: 'Elo internacional',
       aboutIntl: 'Quando existe, a página de cada jogador mostra também o Elo internacional do {site}, que classifica jogadores de todo o mundo com eventos oficiais do Play Hub. É uma classificação à parte do Elo Portugal deste site e serve apenas de referência.',
       aboutPrivH: 'Privacidade',
@@ -595,6 +663,7 @@
         (p.intl ? '<br>' + t('intlElo') + ': <strong>' + intlLink(p) + '</strong>' : '') + '</p></div>' +
       '<h2>' + t('secProgression') + '</h2>' + chart(p.name, ratings, dates, info) +
       statGrid(p) +
+      achievementsSection(p) +
       h2hSection(p) +
       eventsSection(p) +
       '<h2>' + t('secMatches') + '</h2>' + pagedTable('matches',
@@ -621,6 +690,62 @@
       '<th class="wide" scope="col">' + t('colStore') + '</th>' +
       '<th class="num wide" scope="col">' + t('colPlayers') + '</th><th class="num" scope="col">' + t('colMatches') + '</th>',
       rows, t('eventsTitle'));
+  }
+
+  // ---------- conquistas (na pagina do jogador) ----------
+  var RARITY_RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
+  function achPct(x) {
+    var s = x < 10 ? x.toFixed(1) : String(Math.round(x));
+    return lang === 'pt' ? s.replace('.', ',') : s;      // 1,5 em portugues, 1.5 em ingles
+  }
+
+  // e = [valor, nivel conseguido, data do ultimo nivel] ou undefined se nao tem nada
+  function achCard(def, e, A) {
+    var L = def.levels, value = e ? e[0] : 0, level = e ? e[1] : 0, date = e ? e[2] : null;
+    var idx = Math.max(level, 1) - 1;                       // nivel mostrado: o mais alto, ou o primeiro se ainda bloqueada
+    var rar = A.rarity[def.id][idx];
+    var pct = A.total ? A.holders[def.id][idx] * 100 / A.total : 0;
+    var have = level > 0, next = level < L.length ? L[level] : null;
+    var pips = L.length > 1 ? '<span class="ach-pips" role="img" aria-label="' + esc(t('achLevelOf', { l: level, n: L.length })) + '">' +
+      L.map(function (_, i) { return '<i' + (i < level ? ' class="on"' : '') + '></i>'; }).join('') + '</span>' : '';
+    var progress = '';
+    if (next !== null && value > 0) {
+      var base = def.base || 0, frac = Math.max(0, Math.min(1, (value - base) / (next - base)));
+      progress = '<div class="ach-bar" aria-hidden="true"><span style="width:' + Math.round(frac * 100) + '%"></span></div>' +
+        '<span class="ach-meta">' + (have ? t('achNext', { desc: t('ach_' + def.id + '_d', { n: next }) }) + ' ' : '') +
+        '(' + rnd(value) + ' / ' + next + ')</span>';
+    } else if (next !== null && have) {
+      progress = '<span class="ach-meta">' + t('achNext', { desc: t('ach_' + def.id + '_d', { n: next }) }) + '</span>';
+    }
+    return '<div class="ach ach-' + rar + (have ? '' : ' locked') + '">' +
+      '<div class="ach-top"><span class="ach-name">' + t('ach_' + def.id + '_n') + '</span>' +
+      '<span class="ach-rar">' + t('rar_' + rar) + '</span></div>' +
+      '<span class="ach-cat">' + t('achCat_' + def.cat) + '</span>' +
+      '<p class="ach-desc">' + t('ach_' + def.id + '_d', { n: L[idx] }) + '</p>' + pips + progress +
+      '<span class="ach-meta">' + (have ? t('achEarned', { date: fmtDate(date) }) + ' · ' : '') +
+      t('achPct', { pct: achPct(pct) }) + '</span></div>';
+  }
+
+  function achievementsSection(p) {
+    var A = D.achievements;
+    if (!A) return '';
+    var mine = p.ach || {}, earned = [], locked = [];
+    A.defs.forEach(function (def) {
+      var e = mine[def.id];
+      (e && e[1] > 0 ? earned : locked).push({ def: def, e: e });
+    });
+    // as mais raras primeiro; a igualdade decide-se pelo nivel mais alto
+    earned.sort(function (a, b) {
+      var ra = RARITY_RANK[A.rarity[a.def.id][a.e[1] - 1]], rb = RARITY_RANK[A.rarity[b.def.id][b.e[1] - 1]];
+      return rb - ra || b.e[1] - a.e[1];
+    });
+    function grid(list) {
+      return '<div class="ach-grid">' + list.map(function (x) { return achCard(x.def, x.e, A); }).join('') + '</div>';
+    }
+    return '<h2>' + t('achH') + '</h2><p class="note">' + t('achSummary', { n: earned.length, total: A.defs.length }) + '</p>' +
+      (earned.length ? grid(earned) : '<p>' + t('achNone') + '</p>') +
+      (locked.length ? '<details class="ach-locked"><summary>' + t('achLockedH', { n: locked.length }) + '</summary>' +
+        grid(locked) + '</details>' : '');
   }
 
   // ---------- awards: jogador da semana e mais evoluido ----------
@@ -733,6 +858,7 @@
       '<p>' + t('aboutHow3') + '</p>' +
       '<h2>' + t('aboutRankH') + '</h2><p>' + t('aboutRank', { min: m.minGames }) + '</p>' +
       '<h2>' + t('aboutAwardsH') + '</h2><p>' + t('aboutAwards') + '</p>' +
+      '<h2>' + t('aboutAchH') + '</h2><p>' + t('aboutAch') + '</p>' +
       (D.meta.intl ? '<h2>' + t('aboutIntlH') + '</h2><p>' + t('aboutIntl', {
         site: '<a href="https://elorcana.com" target="_blank" rel="noopener noreferrer">elorcana.com</a>' }) + '</p>' : '') +
       '<h2>' + t('aboutPrivH') + '</h2><p>' + t('aboutPriv', { contact: contact, anon: t('anon') }) + '</p></div>';

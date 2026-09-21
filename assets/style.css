@@ -219,6 +219,37 @@ td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
 .stat-value { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
 .stat-sub { font-size: .78rem; color: var(--muted); }
 
+/* conquistas: a cor da tinta e a raridade (aco, esmeralda, safira, ametista, ambar) */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .7rem; margin: .8rem 0 0; }
+.ach {
+  --rar: var(--steel);
+  display: flex; flex-direction: column; gap: .25rem; padding: .7rem .85rem;
+  background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--rar); border-radius: 8px;
+}
+.ach-uncommon { --rar: var(--emerald); }
+.ach-rare { --rar: var(--sapphire); }
+.ach-epic { --rar: var(--amethyst); }
+.ach-legendary { --rar: var(--amber); }
+.ach.locked { --rar: var(--line-strong); }
+.ach.locked .ach-name { color: var(--muted); }
+.ach-top { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.ach-name { font-family: var(--font-display); font-weight: 700; }
+.ach-rar { font-size: .72rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.ach-rar::before {
+  content: ""; display: inline-block; width: .55rem; height: .55rem; margin-right: .3rem;
+  border-radius: 50%; background: var(--rar);
+}
+.ach-cat { font-size: .72rem; color: var(--muted); }
+.ach-desc { margin: .1rem 0 0; font-size: .9rem; }
+.ach-pips { display: flex; gap: .25rem; margin-top: .2rem; }
+.ach-pips i { width: .9rem; height: .35rem; border-radius: 2px; background: var(--line-strong); opacity: .5; }
+.ach-pips i.on { background: var(--rar); opacity: 1; }
+.ach-bar { height: .3rem; margin-top: .3rem; border-radius: 99px; background: var(--line); overflow: hidden; }
+.ach-bar span { display: block; height: 100%; background: var(--rar); }
+.ach-meta { font-size: .75rem; color: var(--muted); }
+.ach-locked { margin-top: 1rem; }
+.ach-locked summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: .3rem 0; }
+
 .tag {
   display: inline-block; padding: .05rem .4rem; border-radius: 999px;
   font-size: .72rem; font-weight: 600; vertical-align: middle;

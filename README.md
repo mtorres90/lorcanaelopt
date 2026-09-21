@@ -41,6 +41,7 @@ The Play Hub blocks requests from browsers on other sites (CORS), so collection 
 | `curate.py` | Rules applied before the Elo is calculated: excluded events, merged accounts, minimum events. Used by both the site and the elorcana fetch |
 | `excluded_events.txt`, `player_merges.txt` | Edit these to exclude an event by name or merge two accounts. When the site is built it lists names shared by different ids, to help you spot more duplicates |
 | `awards.py`, `seasons.txt` | Player of the week and most improved player per season. `seasons.txt` lists the set release dates that start each season; add a line when a new set comes out |
+| `achievements.py` | Achievements shown on each player page (levels, earned dates, automatic rarity). Thresholds and rules are the constants at the top |
 | `build_web.py` | Generates the single page (`index.html`) with ranking, players, events and about |
 | `build_site.py` | Alternative: multi-page site |
 | `make_sample_data.py` | Made-up data for trying things out |
@@ -53,6 +54,21 @@ The **Player of the week** page shows, from the same curated matches as the rank
 - **Weekly title:** the player who gained the most Elo in a week (Monday to Sunday), with at least 4 matches that week and a positive gain (`--potw-min-matches`). Ties go to more matches, then higher Elo. The week in progress is shown as "so far" and only counts once it has ended.
 - **Top 10** by number of weekly titles, and the full **weekly log**.
 - **Most improved player of each season:** a season starts on a set's release date (`seasons.txt`) and ends when the next set is released, which is when the prize is awarded. Improvement is the Elo gained across the season, with at least 15 matches and 3 events in it (`--season-min-matches`, `--season-min-events`). The current season shows who is leading so far.
+
+## Achievements
+
+Each player page has an **Achievements** section (earned ones first, rarest on top; the rest folded under "Locked"). There are 24, most with levels, in eight groups:
+
+- **Stores:** different stores (3 / 5 / 10 / 15), matches at one store (20 / 40), different cities (3 / 5 / 8).
+- **Participation:** matches (10 to 200), events (5 to 50), wins (10 to 100).
+- **Streaks:** wins in a row (3 / 5 / 8 / 10).
+- **Rivalry:** different opponents (10 / 25 / 50), matches against the same opponent (3 / 5 / 8), beat the same opponent 3 times, beat someone who had beaten you 3+ times.
+- **Elo:** peak Elo (1550 to 1750), Elo gained in one season (50 / 100 / 150, with 15+ matches in it), biggest win over a higher-rated opponent (100 / 200 / 300 Elo above).
+- **Events:** events without losing a match (3+ matches each; 1 / 3), a flawless first event, an event with 32+ players, a win after losing 3 in a row, a win in the final round of an event.
+- **Awards:** player of the week (1 / 2 / 4), Most improved winner, Most improved top 3.
+- **Loyalty:** played in the first season, played in 3 / 5 different seasons.
+
+Rarity is automatic, from the share of listed players who have that level: Common 40%+, Uncommon 15-40%, Rare 5-15%, Epic 1-5%, Legendary under 1%. The date shown is when the level was first reached, and an achievement, once earned, stays. To change a threshold, edit `DEFS` in `achievements.py`; the texts (English and Portuguese) are in `assets/web_app.js` under `ach_<id>_n` and `ach_<id>_d`, and a test checks that none is missing.
 
 ## International Elo (elorcana.com)
 

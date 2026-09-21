@@ -13,6 +13,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+import achievements
 import awards
 import curate
 import db
@@ -174,6 +175,12 @@ def build(args: argparse.Namespace) -> None:
         getattr(args, "season_min_matches", awards.SEASON_MIN_MATCHES),
         getattr(args, "season_min_events", awards.SEASON_MIN_EVENTS))
 
+    ach = achievements.compute(history, {p["id"] for p in players}, events,
+                               awards_data["seasons"], awards_data["weeks"])
+    for p in players:
+        if p["id"] in ach["players"]:
+            p["ach"] = ach["players"][p["id"]]
+
     data = {
         "meta": {"since": fmt_date(args.date_from), "matches": len(matches), "events": len(events),
                  "minGames": args.min_games, "ranked": len(ranked), "contact": args.contact,
@@ -184,6 +191,7 @@ def build(args: argparse.Namespace) -> None:
         "players": players,
         "events": events,
         "awards": awards_data,
+        "achievements": {k: ach[k] for k in ("cats", "defs", "holders", "rarity", "total")},
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     demo = ('<p class="demo" data-i18n="demo">Dados de exemplo: os jogadores e os resultados são inventados para testar o site.</p>'

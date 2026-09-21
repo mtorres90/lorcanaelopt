@@ -1,5 +1,15 @@
 # Release notes
 
+## 2026-09-22 (second release): Achievements
+
+### New
+
+- **Achievements on each player page.** 24 achievements, most with levels, from playing at several stores to win
+  streaks, peak Elo, undefeated events, player of the week and Most improved. Earned ones show the date and the
+  next level's progress; the rest are listed under "Locked". Rarity (Common to Legendary) is worked out from how
+  many players have each level, using the ink colours already in the design. See the README for the full list.
+- The About page has a short section on achievements.
+
 ## 2026-09-22: Player of the week and seasons
 
 ### New
