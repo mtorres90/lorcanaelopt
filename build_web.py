@@ -14,10 +14,11 @@ from datetime import date
 from pathlib import Path
 
 import db
-from assets_inline import STYLE_CSS, WEB_APP_JS
-from build_site import fold, fmt_date, load_opt_out
+from build_site import ASSETS_DIR, STYLE_CSS, fold, fmt_date, load_opt_out
 from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING,
-                  compute, dna_stats, extra_stats, rival_labels)
+                  compute, extra_stats, rival_labels)
+
+WEB_APP_JS = (ASSETS_DIR / "web_app.js").read_text(encoding="utf-8")
 
 SHELL = """<!doctype html>
 <html lang="en">
@@ -97,7 +98,6 @@ def build(args: argparse.Namespace) -> None:
         extra["low"] = round(extra["low"], 1)
         extra["best_gain"] = round(extra["best_gain"], 1)
         extra["worst_loss"] = round(extra["worst_loss"], 1)
-        extra["dna"] = dna_stats(rows)
         return extra
 
     def real_name_of(pid: str) -> str | None:
