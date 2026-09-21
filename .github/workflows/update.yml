@@ -1,0 +1,53 @@
+name: Atualizar ranking
+# Todas as noites (e quando carregares em Run workflow): recolhe resultados de Portugal
+# desde o lançamento do Set 9, calcula o Elo e publica a página no GitHub Pages.
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Testes
+        run: python -m unittest
+      - name: Cache das respostas já recolhidas
+        uses: actions/cache@v4
+        with:
+          path: raw
+          key: playhub-raw-${{ github.run_id }}
+          restore-keys: playhub-raw-
+      - name: Recolher resultados do Play Hub
+        run: python ingest_playhub.py --out data/matches.csv
+      - name: Calcular Elo e gerar a página
+        run: |
+          python import_matches.py data/matches.csv --db data/lorcana.db
+          python build_web.py --db data/lorcana.db --out public/index.html --contact "${{ vars.CONTACT_EMAIL }}"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
