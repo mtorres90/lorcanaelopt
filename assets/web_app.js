@@ -26,6 +26,12 @@
     return '<span class="chip chip-d" title="Empate">E</span>';
   }
   function link(id) { return '#/jogador/' + encodeURIComponent(id); }
+  function markScrollableTables() {
+    [].slice.call(app.querySelectorAll('.tablewrap')).forEach(function (w) {
+      if (w.scrollWidth > w.clientWidth + 1) w.classList.add('scrolls');
+      else w.classList.remove('scrolls');
+    });
+  }
 
   // ---------- ranking ----------
   function rankingView() {
@@ -111,7 +117,8 @@
       var ev = D.events[h[1]] || {};
       var opp = h[3] && byId[h[3]]
         ? '<a href="' + link(h[3]) + '">' + esc(byId[h[3]].name) + '</a>' : 'Jogador an\u00f3nimo';
-      return '<tr><td>' + fmtDate(h[0]) + '</td><td>' + esc(ev.name || h[1]) + '</td><td class="num">' + h[2] +
+      var evName = ev.name || h[1];
+      return '<tr><td>' + fmtDate(h[0]) + '</td><td title="' + esc(evName) + '">' + esc(evName) + '</td><td class="num">' + h[2] +
         '</td><td>' + opp + '</td><td>' + chip(h[4]) + '</td><td class="num">' + rnd(h[5]) +
         ' <span class="delta">(' + delta(h[6]) + ')</span></td></tr>';
     }).join('');
@@ -132,7 +139,8 @@
       .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
     var rows = list.map(function (e) {
       var where = [e.store, e.city].filter(Boolean).join(', ');
-      return '<tr><td>' + fmtDate(e.date) + '</td><td>' + esc(e.name || e.id) + '</td><td>' + esc(where) +
+      var evName = e.name || e.id;
+      return '<tr><td>' + fmtDate(e.date) + '</td><td title="' + esc(evName) + '">' + esc(evName) + '</td><td>' + esc(where) +
         '</td><td class="num">' + e.players + '</td><td class="num">' + e.matches + '</td></tr>';
     }).join('');
     return '<h1>Eventos</h1><p class="lead">Eventos em lojas portuguesas com resultados registados desde ' +
@@ -188,6 +196,7 @@
     }
     app.innerHTML = html;
     document.title = title + ' \u00b7 Elo Lorcana Portugal';
+    markScrollableTables();
     [].slice.call(document.querySelectorAll('nav a')).forEach(function (a) {
       if (a.getAttribute('data-key') === key) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
@@ -201,5 +210,6 @@
     first = false;
   }
   window.addEventListener('hashchange', route);
+  window.addEventListener('resize', markScrollableTables);
   route();
 })();
