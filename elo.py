@@ -152,6 +152,54 @@ def extra_stats(hist: list[HistoryRow], hidden: set[str]) -> dict:
     }
 
 
+def dna_stats(hist: list[HistoryRow], min_n: int = 3) -> dict:
+    """'Summoner's DNA': seis eixos do estilo competitivo, calculados so a partir
+    do historico de partidas (sem dados por-jogo dentro da partida, que a API nao
+    da). Cada eixo tem tambem a dimensao da amostra (`_n`); com menos de `min_n`
+    fica a None, para o grafico assinalar 'sem dados suficientes' em vez de
+    mostrar uma percentagem enganadora."""
+
+    def rate(score_sum: float, n: int) -> float | None:
+        return round(score_sum / n * 100, 1) if n >= min_n else None
+
+    games = len(hist)
+    dominance_sum = sum(h.score for h in hist)
+
+    fav_n = fav_sum = dog_n = dog_sum = 0
+    for h in hist:
+        if h.rating_before >= h.opponent_rating:
+            fav_n += 1
+            fav_sum += h.score
+        else:
+            dog_n += 1
+            dog_sum += h.score
+
+    by_event: dict[str, list[HistoryRow]] = {}
+    for h in hist:
+        by_event.setdefault(h.event_id, []).append(h)
+    final_rows = [rows[-1] for rows in by_event.values()]
+    composure_sum = sum(h.score for h in final_rows)
+
+    qualifying_events = [rows for rows in by_event.values() if len(rows) >= 2]
+    mastered = sum(1 for rows in qualifying_events
+                   if sum(h.score for h in rows) / len(rows) >= 0.6)
+
+    clutch_n = clutch_sum = 0
+    for prev, cur in zip(hist, hist[1:]):
+        if prev.score == 0.0:
+            clutch_n += 1
+            clutch_sum += cur.score
+
+    return {
+        "dominance": rate(dominance_sum, games), "dominance_n": games,
+        "consistency": rate(fav_sum, fav_n), "consistency_n": fav_n,
+        "composure": rate(composure_sum, len(final_rows)), "composure_n": len(final_rows),
+        "event_mastery": rate(mastered, len(qualifying_events)), "event_mastery_n": len(qualifying_events),
+        "grit": rate(dog_sum, dog_n), "grit_n": dog_n,
+        "clutch": rate(clutch_sum, clutch_n), "clutch_n": clutch_n,
+    }
+
+
 def rival_labels(h2h: list[dict], min_games: int = 3) -> tuple[str | None, str | None]:
     """Escolhe o maior rival (pior taxa de vitoria) e a vitima favorita (melhor
     taxa de vitoria) entre os confrontos com pelo menos `min_games` partidas."""
