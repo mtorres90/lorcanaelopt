@@ -125,6 +125,7 @@ p { max-width: 42rem; margin: 0 0 1rem; }
 .crumb { margin: 1.2rem 0 0; font-size: .95rem; }
 .crumb a { color: var(--muted); }
 .crumb + h1 { margin-top: .4rem; }
+.crumb-sub { margin: -.3rem 0 0; color: var(--muted); font-size: .95rem; }
 
 /* pesquisa */
 .search { margin: 1.4rem 0 1rem; }
@@ -199,6 +200,24 @@ tbody tr:last-child td { border-bottom: 0; }
 }
 .tag-l { background: var(--loss-bg); color: var(--loss); }
 .tag-w { background: var(--win-bg); color: var(--win); }
+
+/* summoner's dna */
+.dna-wrap {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem 2.5rem; margin: 1.2rem 0 2rem;
+}
+.dna-chart { width: 100%; max-width: 20rem; height: auto; flex: 1 1 18rem; overflow: visible; }
+.dna-ring { fill: none; stroke: var(--line); }
+.dna-axis { stroke: var(--line); }
+.dna-poly { fill: color-mix(in srgb, var(--amethyst) 22%, transparent); stroke: var(--amethyst); stroke-width: 2; stroke-linejoin: round; }
+.dna-dot { fill: var(--amethyst); }
+.dna-label { fill: var(--muted); font-size: 10px; font-family: var(--font-body); }
+.dna-list { flex: 1 1 18rem; display: flex; flex-direction: column; gap: .9rem; }
+.dna-row-head { display: flex; justify-content: space-between; gap: 1rem; font-size: .9rem; }
+.dna-row-label { font-weight: 600; }
+.dna-row-value { font-variant-numeric: tabular-nums; color: var(--muted); }
+.dna-bar { height: 6px; margin: .3rem 0 .2rem; background: var(--line); border-radius: 999px; overflow: hidden; }
+.dna-bar span { display: block; height: 100%; background: var(--amethyst); border-radius: inherit; }
+.dna-row-sub { font-size: .78rem; color: var(--muted); }
 
 .chart { width: 100%; max-width: 40rem; height: auto; display: block; }
 .chart-base { stroke: var(--line-strong); stroke-dasharray: 4 4; }
