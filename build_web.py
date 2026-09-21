@@ -17,14 +17,14 @@ import db
 from assets_inline import STYLE_CSS, WEB_APP_JS
 from build_site import fold, fmt_date, load_opt_out
 from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING,
-                  compute, extra_stats, rival_labels)
+                  compute, dna_stats, extra_stats, rival_labels)
 
 SHELL = """<!doctype html>
-<html lang="pt-PT">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Elo Lorcana Portugal</title>
+<title>Lorcana Portugal Elo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Public+Sans:wght@400;600&amp;display=swap">
@@ -38,17 +38,17 @@ html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 <div class="inkband" aria-hidden="true"></div>
 __DEMO__
 <header class="wrap top">
-<a class="brand" href="#/">Elo Lorcana Portugal</a>
-<nav aria-label="Principal">
+<a class="brand" href="#/">Lorcana Portugal Elo</a>
+<nav aria-label="Main">
 <a href="#/" data-key="ranking">Ranking</a>
-<a href="#/eventos" data-key="eventos">Eventos</a>
-<a href="#/sobre" data-key="sobre">Sobre</a>
+<a href="#/events" data-key="events">Events</a>
+<a href="#/about" data-key="about">About</a>
 </nav>
 </header>
 <main class="wrap" id="app"></main>
 <footer class="wrap foot">
-<p>Projeto de fãs, sem ligação à Ravensburger nem à Disney. Disney Lorcana é marca dos respetivos titulares.
-Resultados obtidos do Ravensburger Play Hub. Atualizado em __UPDATED__.</p>
+<p>Fan project, not affiliated with Ravensburger or Disney. Disney Lorcana is a trademark of its respective owners.
+Results sourced from the Ravensburger Play Hub. Updated on __UPDATED__.</p>
 </footer>
 <script>
 var DATA = __DATA__;
@@ -68,6 +68,8 @@ def build(args: argparse.Namespace) -> None:
 
     hidden = load_opt_out(args.opt_out)
     names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM players")}
+    real_names = {r["id"]: r["real_name"] for r in conn.execute("SELECT id, real_name FROM players")
+                  if r["real_name"]}
     ev_rows = {r["id"]: dict(r) for r in conn.execute("SELECT * FROM events")}
 
     visible = [s for s in stats.values() if s.id not in hidden]
@@ -88,16 +90,23 @@ def build(args: argparse.Namespace) -> None:
             [h.date, h.event_id, h.round, opp, h.score, round(h.rating_after, 1), round(h.delta, 1)])
 
     def extra_of(pid: str) -> dict:
-        extra = extra_stats(hist_by_player.get(pid, []), hidden)
+        rows = hist_by_player.get(pid, [])
+        extra = extra_stats(rows, hidden)
         nemesis, victim = rival_labels(extra["h2h"])
         extra["nemesis"], extra["victim"] = nemesis, victim
         extra["low"] = round(extra["low"], 1)
         extra["best_gain"] = round(extra["best_gain"], 1)
         extra["worst_loss"] = round(extra["worst_loss"], 1)
+        extra["dna"] = dna_stats(rows)
         return extra
 
+    def real_name_of(pid: str) -> str | None:
+        rn = real_names.get(pid)
+        return rn if rn and fold(rn) != fold(names.get(pid, "")) else None
+
     players = [{
-        "id": s.id, "name": names.get(s.id, s.id), "rating": round(s.rating, 1),
+        "id": s.id, "name": names.get(s.id, s.id), "realName": real_name_of(s.id),
+        "rating": round(s.rating, 1),
         "peak": round(s.peak, 1), "games": s.games, "wins": s.wins, "draws": s.draws,
         "losses": s.losses, "rank": rank_of.get(s.id), "h": per_player.get(s.id, []),
         "extra": extra_of(s.id),
@@ -124,7 +133,7 @@ def build(args: argparse.Namespace) -> None:
         "events": events,
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    demo = ('<p class="demo">Dados de exemplo: jogadores e resultados inventados para testar o site.</p>'
+    demo = ('<p class="demo">Sample data: players and results are made up to test the site.</p>'
             if args.demo else "")
     page = (SHELL
             .replace("__CSS__", STYLE_CSS)
