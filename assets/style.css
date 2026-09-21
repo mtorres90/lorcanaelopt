@@ -164,6 +164,19 @@ tbody tr:last-child td { border-bottom: 0; }
 .delta { color: var(--muted); font-size: .9rem; }
 .empty { margin: 1rem 0; color: var(--muted); }
 
+.pager {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  margin: 1.1rem 0; font-size: .9rem;
+}
+.pager button {
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: 6px;
+  padding: .45rem .9rem; cursor: pointer;
+}
+.pager button:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.pager button:disabled { opacity: .45; cursor: default; }
+.pager-status { color: var(--muted); font-variant-numeric: tabular-nums; }
+
 .chip {
   display: inline-block; min-width: 1.6rem; padding: .05rem .3rem;
   text-align: center; border-radius: 4px; font-size: .8rem; font-weight: 600; margin-right: .2rem;
@@ -201,25 +214,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .tag-l { background: var(--loss-bg); color: var(--loss); }
 .tag-w { background: var(--win-bg); color: var(--win); }
 
-/* summoner's dna */
-.dna-wrap {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem 2.5rem; margin: 1.2rem 0 2rem;
-}
-.dna-chart { width: 100%; max-width: 20rem; height: auto; flex: 1 1 18rem; overflow: visible; }
-.dna-ring { fill: none; stroke: var(--line); }
-.dna-axis { stroke: var(--line); }
-.dna-poly { fill: color-mix(in srgb, var(--amethyst) 22%, transparent); stroke: var(--amethyst); stroke-width: 2; stroke-linejoin: round; }
-.dna-dot { fill: var(--amethyst); }
-.dna-label { fill: var(--muted); font-size: 10px; font-family: var(--font-body); }
-.dna-list { flex: 1 1 18rem; display: flex; flex-direction: column; gap: .9rem; }
-.dna-row-head { display: flex; justify-content: space-between; gap: 1rem; font-size: .9rem; }
-.dna-row-label { font-weight: 600; }
-.dna-row-value { font-variant-numeric: tabular-nums; color: var(--muted); }
-.dna-bar { height: 6px; margin: .3rem 0 .2rem; background: var(--line); border-radius: 999px; overflow: hidden; }
-.dna-bar span { display: block; height: 100%; background: var(--amethyst); border-radius: inherit; }
-.dna-row-sub { font-size: .78rem; color: var(--muted); }
-
-.chart { width: 100%; max-width: 40rem; height: auto; display: block; }
+.chart { width: 100%; height: auto; display: block; }
 .chart-base { stroke: var(--line-strong); stroke-dasharray: 4 4; }
 .chart-line { fill: none; stroke: var(--sapphire); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .chart-dot { fill: var(--sapphire); }
