@@ -36,6 +36,11 @@
     return '<span class="chip chip-d" title="Draw">D</span>';
   }
   function link(id) { return '#/player/' + encodeURIComponent(id); }
+  function eventUrl(id) { return 'https://tcg.ravensburgerplay.com/events/' + encodeURIComponent(id); }
+  function eventLink(id, name) {
+    return '<a href="' + eventUrl(id) + '" target="_blank" rel="noopener noreferrer" title="' +
+      esc(name) + '">' + esc(name) + '</a>';
+  }
   function markScrollableTables() {
     [].slice.call(app.querySelectorAll('.tablewrap')).forEach(function (w) {
       if (w.scrollWidth > w.clientWidth + 1) w.classList.add('scrolls');
@@ -69,25 +74,47 @@
       '<thead><tr><th class="num" scope="col">Rank</th><th scope="col">Player</th><th class="num" scope="col">Elo</th>' +
       '<th class="num" scope="col">Matches</th><th class="num wide" scope="col">W\u2013D\u2013L</th>' +
       '<th class="wide" scope="col">Last 5</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<p id="empty" class="empty" hidden>No player found. Check the spelling of the name.</p>';
+      '<p id="empty" class="empty" hidden>No player found. Check the spelling of the name.</p>' +
+      '<nav id="pager" class="pager" aria-label="Ranking pages"></nav>';
   }
+
+  var PAGE_SIZE = 25;
 
   function wireSearch() {
     var input = document.getElementById('q');
     if (!input) return;
     var rows = [].slice.call(document.querySelectorAll('tbody tr[data-name]'));
     var empty = document.getElementById('empty');
+    var pager = document.getElementById('pager');
+    var page = 1;
     function apply() {
-      var q = fold(query.trim()), shown = 0;
-      rows.forEach(function (r) {
-        var ok = !q || r.getAttribute('data-name').indexOf(q) !== -1;
-        r.hidden = !ok;
-        if (ok) shown++;
+      var q = fold(query.trim());
+      var matches = rows.filter(function (r) {
+        return !q || r.getAttribute('data-name').indexOf(q) !== -1;
       });
-      empty.hidden = shown !== 0;
+      var totalPages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+      if (page > totalPages) page = totalPages;
+      var start = (page - 1) * PAGE_SIZE, end = start + PAGE_SIZE;
+      rows.forEach(function (r) { r.hidden = true; });
+      matches.forEach(function (r, i) { r.hidden = !(i >= start && i < end); });
+      empty.hidden = matches.length !== 0;
+      if (pager) {
+        if (matches.length > PAGE_SIZE) {
+          pager.innerHTML =
+            '<button type="button" id="prevPage"' + (page <= 1 ? ' disabled' : '') + '>Previous</button>' +
+            '<span class="pager-status">Page ' + page + ' of ' + totalPages + '</span>' +
+            '<button type="button" id="nextPage"' + (page >= totalPages ? ' disabled' : '') + '>Next</button>';
+          var prevBtn = document.getElementById('prevPage');
+          var nextBtn = document.getElementById('nextPage');
+          if (prevBtn) prevBtn.addEventListener('click', function () { page--; apply(); window.scrollTo(0, 0); });
+          if (nextBtn) nextBtn.addEventListener('click', function () { page++; apply(); window.scrollTo(0, 0); });
+        } else {
+          pager.innerHTML = '';
+        }
+      }
     }
     input.value = query;
-    input.addEventListener('input', function () { query = input.value; apply(); });
+    input.addEventListener('input', function () { query = input.value; page = 1; apply(); });
     apply();
   }
 
@@ -176,7 +203,7 @@
     if (!order.length) return '';
     var rows = order.slice().reverse().map(function (eid) {
       var e = byEv[eid], ev = D.events[eid] || {}, evName = ev.name || eid;
-      return '<tr><td>' + fmtDate(e.date) + '</td><td title="' + esc(evName) + '">' + esc(evName) + '</td>' +
+      return '<tr><td>' + fmtDate(e.date) + '</td><td>' + eventLink(eid, evName) + '</td>' +
         '<td class="num">' + e.rounds + '</td><td class="num wide">' + e.w + '\u2013' + e.d + '\u2013' + e.l + '</td>' +
         '<td class="num">' + delta(e.end - e.start) + '</td></tr>';
     }).join('');
@@ -184,61 +211,6 @@
       '<thead><tr><th scope="col">Date</th><th scope="col">Event</th><th class="num" scope="col">Rounds</th>' +
       '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Change</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>';
-  }
-
-  function radarChart(dims) {
-    var w = 320, h = 320, cx = w / 2, cy = h / 2, r = 96;
-    var n = dims.length;
-    function pt(i, rad) {
-      var a = -Math.PI / 2 + i * (2 * Math.PI / n);
-      return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
-    }
-    var rings = [0.25, 0.5, 0.75, 1].map(function (f) {
-      var pts = dims.map(function (_, i) { var p = pt(i, r * f); return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
-      return '<polygon class="dna-ring" points="' + pts + '"/>';
-    }).join('');
-    var axes = dims.map(function (_, i) {
-      var p = pt(i, r);
-      return '<line class="dna-axis" x1="' + cx + '" y1="' + cy + '" x2="' + p[0].toFixed(1) + '" y2="' + p[1].toFixed(1) + '"/>';
-    }).join('');
-    var dataPts = dims.map(function (d, i) { return pt(i, r * (d.value == null ? 0 : d.value) / 100); });
-    var poly = dataPts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
-    var dots = dims.map(function (d, i) {
-      if (d.value == null) return '';
-      var p = dataPts[i];
-      return '<circle class="dna-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3.5"/>';
-    }).join('');
-    var labels = dims.map(function (d, i) {
-      var p = pt(i, r + 44);
-      var anchor = Math.abs(p[0] - cx) < 4 ? 'middle' : (p[0] > cx ? 'start' : 'end');
-      return '<text class="dna-label" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" text-anchor="' + anchor + '">' + esc(d.label) + '</text>';
-    }).join('');
-    return '<svg class="dna-chart" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Summoner\u2019s DNA radar chart">' +
-      rings + axes + '<polygon class="dna-poly" points="' + poly + '"/>' + dots + labels + '</svg>';
-  }
-
-  function dnaSection(p) {
-    var d = p.extra && p.extra.dna;
-    if (!d) return '';
-    var dims = [
-      { key: 'dominance', label: 'Dominance', sub: d.dominance_n + ' matches' },
-      { key: 'consistency', label: 'Consistency', sub: 'as favorite \u00b7 ' + d.consistency_n + ' matches' },
-      { key: 'composure', label: 'Composure', sub: 'final round \u00b7 ' + d.composure_n + ' events' },
-      { key: 'event_mastery', label: 'Event Mastery', sub: '60%+ win rate \u00b7 ' + d.event_mastery_n + ' events' },
-      { key: 'grit', label: 'Grit', sub: 'as underdog \u00b7 ' + d.grit_n + ' matches' },
-      { key: 'clutch', label: 'Clutch Closer', sub: 'after a loss \u00b7 ' + d.clutch_n + ' matches' }
-    ];
-    var rows = dims.map(function (x) {
-      var v = d[x.key];
-      var pct = v == null ? 'not enough data' : Math.round(v) + ' %';
-      var bar = '<div class="dna-bar"><span style="width:' + (v == null ? 0 : Math.round(v)) + '%"></span></div>';
-      return '<div class="dna-row"><div class="dna-row-head"><span class="dna-row-label">' + x.label + '</span>' +
-        '<span class="dna-row-value">' + pct + '</span></div>' + bar +
-        '<span class="dna-row-sub">' + x.sub + '</span></div>';
-    }).join('');
-    var radarDims = dims.map(function (x) { return { label: x.label, value: d[x.key] }; });
-    return '<h2>Summoner\u2019s DNA</h2><p class="lead">Six dimensions of ' + esc(p.name) + '\u2019s competitive style.</p>' +
-      '<div class="dna-wrap">' + radarChart(radarDims) + '<div class="dna-list">' + rows + '</div></div>';
   }
 
   function playerView(id) {
@@ -254,7 +226,7 @@
       var opp = h[3] && byId[h[3]]
         ? '<a href="' + link(h[3]) + '">' + esc(byId[h[3]].name) + '</a>' : 'Anonymous player';
       var evName = ev.name || h[1];
-      return '<tr><td>' + fmtDate(h[0]) + '</td><td title="' + esc(evName) + '">' + esc(evName) + '</td><td class="num">' + h[2] +
+      return '<tr><td>' + fmtDate(h[0]) + '</td><td>' + eventLink(h[1], evName) + '</td><td class="num">' + h[2] +
         '</td><td>' + opp + '</td><td>' + chip(h[4]) + '</td><td class="num">' + rnd(h[5]) +
         ' <span class="delta">(' + delta(h[6]) + ')</span></td></tr>';
     }).join('');
@@ -263,9 +235,8 @@
       '<div class="hero"><p class="bignum" aria-label="Current Elo">' + rnd(p.rating) + '</p>' +
       '<p class="hero-text">' + standing + '<br>Peak of ' + rnd(p.peak) + '. ' + p.wins + ' wins, ' +
       p.draws + ' draws and ' + p.losses + ' losses (' + pct + '% win rate).</p></div>' +
-      statGrid(p) +
       '<h2>Elo progression</h2>' + chart(p.name, ratings) +
-      dnaSection(p) +
+      statGrid(p) +
       h2hSection(p) +
       eventsSection(p) +
       '<h2>Matches</h2><div class="tablewrap"><table class="matches"><thead><tr><th scope="col">Date</th>' +
@@ -281,7 +252,7 @@
     var rows = list.map(function (e) {
       var where = [e.store, e.city].filter(Boolean).join(', ');
       var evName = e.name || e.id;
-      return '<tr><td>' + fmtDate(e.date) + '</td><td title="' + esc(evName) + '">' + esc(evName) + '</td><td>' + esc(where) +
+      return '<tr><td>' + fmtDate(e.date) + '</td><td>' + eventLink(e.id, evName) + '</td><td>' + esc(where) +
         '</td><td class="num">' + e.players + '</td><td class="num">' + e.matches + '</td></tr>';
     }).join('');
     return '<h1>Events</h1><p class="lead">Events at Portuguese stores with results recorded since ' +
