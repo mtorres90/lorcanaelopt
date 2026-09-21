@@ -1,0 +1,2 @@
+# Ids de jogadores a ocultar do site (um por linha).
+# Exemplo: demo-010
