@@ -1,6 +1,6 @@
-"""Testes da ingestao. A API e simulada com um servidor local: valida a mecanica
-(paginacao, filtros, cache, CSV) e o parsing das formas de dados ASSUMIDAS.
-Nao prova que a API real tenha estas formas: isso e o papel do modo --probe."""
+"""Testes da ingestao. A API e simulada com um servidor local, usando a FORMA REAL dos
+dados observada na sondagem do Play Hub (campos e tipos). Validam a mecanica
+(paginacao, filtros, fases, cache, CSV) e o parsing; nao validam valores reais."""
 import csv
 import json
 import tempfile
@@ -14,36 +14,51 @@ from urllib.parse import parse_qs, urlparse
 import ingest_playhub as ing
 
 
-def rel(pid, name, won, uid=None):
-    return {"id": pid * 10, "games_won": won,
-            "player": {"id": pid, "user": {"id": uid or pid + 1000}, "best_identifier": name}}
+def rel(pid, name):
+    return {"id": pid * 10, "player_order": 1,
+            "player": {"id": pid, "pronouns": "", "country_code": None, "best_identifier": name},
+            "user_event_status": {"id": pid * 100, "best_identifier": name, "user": {"id": pid + 5000}}}
 
+
+def match(a, b, winner=None, **flags):
+    base = {"player_match_relationships": [a, b], "winning_player": winner, "match_is_bye": False,
+            "match_is_intentional_draw": False, "match_is_unintentional_draw": False,
+            "match_is_loss": False}
+    base.update(flags)
+    return base
+
+
+def store(city, country="PT"):
+    return {"id": 1, "name": "Loja", "city": city, "country": country, "full_address": f"Rua, {city}, {country}"}
+
+
+def ev(eid, name, day, fmt, st):
+    return {"id": eid, "name": name, "start_datetime": f"{day}T18:00:00Z", "store": st,
+            "event_format": "constructed", "gameplay_format": {"id": "g", "name": fmt},
+            "is_test_event": False, "is_template": False}
+
+
+ANA, BRUNO, CARLA, DIOGO = rel(1, "Ana P"), rel(2, "Bruno M"), rel(3, "Carla S"), rel(4, "Diogo L")
 
 EVENTS = [
-    {"id": 1, "name": "Liga Core", "start_datetime": "2025-10-04T18:00:00Z",
-     "store": {"name": "Loja PT", "city": "Lisboa", "full_address": "Rua X, Lisboa, 1000, PT"},
-     "event_format": {"name": "Core Constructed"}},
-    {"id": 2, "name": "Draft", "start_datetime": "2025-10-05T18:00:00Z",
-     "store": {"name": "Loja PT", "city": "Lisboa", "full_address": "Rua X, Lisboa, 1000, PT"},
-     "event_format": {"name": "Booster Draft"}},
-    {"id": 3, "name": "Antes da rotacao", "start_datetime": "2025-08-01T18:00:00Z",
-     "store": {"name": "Loja PT", "city": "Porto", "full_address": "Rua Y, Porto, 4000, PT"},
-     "event_format": {"name": "Core Constructed"}},
-    {"id": 4, "name": "Bern", "start_datetime": "2025-10-04T18:00:00Z",
-     "store": {"name": "GoodGames", "city": "Bern", "full_address": "Laupenstrasse 4, Bern, 3008, CH"},
-     "event_format": {"name": "Core Constructed"}},
+    ev(1, "Liga Core", "2025-10-04", "Core Constructed", store("Lisboa")),
+    ev(2, "Draft", "2025-10-05", "Booster Draft", store("Lisboa")),
+    ev(3, "Antes da rotacao", "2025-08-01", "Core Constructed", store("Porto")),
+    ev(4, "Bern", "2025-10-04", "Core Constructed", store("Bern", "CH")),
+    dict(ev(5, "Teste", "2025-10-06", "Core Constructed", store("Lisboa")), is_test_event=True),
 ]
-DETAILS = {1: {"id": 1, "name": "Liga Core", "store": EVENTS[0]["store"],
-               "tournament_phases": [{"rounds": [{"id": 101, "round_number": 1}, {"id": 102, "round_number": 2}]}]}}
+DETAILS = {1: {"id": 1, "name": "Liga Core", "store": {"name": "Loja", "country": "PT", "full_address": "Rua, Lisboa, PT"},
+               "tournament_phases": [
+                   # fase 2 listada primeiro de proposito: a ordem vem de order_in_phases
+                   {"order_in_phases": 2, "rounds": [{"id": 103, "round_number": 1}]},
+                   {"order_in_phases": 1, "rounds": [{"id": 102, "round_number": 2}, {"id": 101, "round_number": 1}]},
+               ]}}
 MATCHES = {
-    101: [
-        {"player_match_relationships": [rel(1, "Ana", 2), rel(2, "Bruno", 0)], "winning_player": 1},
-        {"player_match_relationships": [rel(3, "Carla", 1), rel(4, "Diogo", 1)], "match_is_intentional_draw": True},
-    ],
-    102: [
-        {"player_match_relationships": [rel(1, "Ana", 0), rel(3, "Carla", 2)]},   # sem winning_player: usa games_won
-        {"player_match_relationships": [rel(2, "Bruno", 0)], "match_is_bye": True},  # bye
-    ],
+    101: [match(ANA, BRUNO, winner=1), match(CARLA, DIOGO, match_is_intentional_draw=True)],
+    102: [match(ANA, CARLA, winner=3), match(BRUNO, DIOGO, match_is_bye=True)],
+    103: [match(CARLA, ANA, winner=1),
+          match(BRUNO, DIOGO),                        # sem resultado registado
+          match(ANA, BRUNO, match_is_loss=True)],     # perda dupla
 }
 
 
@@ -61,8 +76,7 @@ class Handler(BaseHTTPRequestHandler):
             chunk = EVENTS[(page - 1) * size: page * size]
             body = {"count": len(EVENTS), "results": chunk,
                     "next": "more" if page * size < len(EVENTS) else None}
-            # so o 1.o centro devolve eventos; os outros devolvem vazio
-            if float(qs["latitude"][0]) != 39.6:
+            if float(qs["latitude"][0]) != 39.6:   # so o 1.o centro devolve eventos
                 body = {"count": 0, "results": [], "next": None}
         elif len(parts) == 2 and parts[0] == "events":
             body = DETAILS[int(parts[1])]
@@ -83,27 +97,33 @@ class ParsingTests(unittest.TestCase):
     def test_country(self):
         self.assertEqual(ing.country_of(EVENTS[0]), "PT")
         self.assertEqual(ing.country_of(EVENTS[3]), "CH")
-        self.assertEqual(ing.country_of({"store": {"country": "Portugal"}}), "PT")
 
-    def test_match_winner_draw_bye_and_fallback(self):
-        ms = MATCHES[101] + MATCHES[102]
-        self.assertEqual(ing.parse_match(ms[0])[4], "A")
-        self.assertEqual(ing.parse_match(ms[1])[4], "D")
-        self.assertEqual(ing.parse_match(ms[2])[4], "B")   # games_won 0 vs 2
-        self.assertIsNone(ing.parse_match(ms[3]))          # bye
+    def test_winner_uses_player_id(self):
+        self.assertEqual(ing.parse_match(MATCHES[101][0]), ("1", "Ana P", "2", "Bruno M", "A"))
+        self.assertEqual(ing.parse_match(MATCHES[102][0])[4], "B")
+
+    def test_draw_flags(self):
+        self.assertEqual(ing.parse_match(MATCHES[101][1])[4], "D")
+        m = match(ANA, BRUNO, match_is_unintentional_draw=True)
+        self.assertEqual(ing.parse_match(m)[4], "D")
+
+    def test_bye_unreported_and_double_loss_are_skipped(self):
+        self.assertIsNone(ing.parse_match(MATCHES[102][1]))
+        self.assertIsNone(ing.parse_match(MATCHES[103][1]))
+        self.assertIsNone(ing.parse_match(MATCHES[103][2]))
+
+    def test_winner_with_loss_flag_still_counts(self):
+        self.assertEqual(ing.parse_match(match(ANA, BRUNO, winner=1, match_is_loss=True))[4], "A")
 
     def test_name_falls_back_to_first_name_and_initial(self):
         self.assertEqual(ing.player_name({"first_name": "Maria", "last_name": "Silva"}), "Maria S.")
 
-    def test_player_key_prefers_user_id(self):
-        self.assertEqual(ing.player_key({"id": 5, "user": {"id": 99}}), "99")
-
-    def test_format_filter(self):
+    def test_format_filter_uses_gameplay_format_name(self):
         self.assertTrue(ing.matches_format(EVENTS[0], ["core constructed"]))
         self.assertFalse(ing.matches_format(EVENTS[1], ["core constructed"]))
 
-    def test_round_ids(self):
-        self.assertEqual(ing.round_ids_of(DETAILS[1]), [(1, "101"), (2, "102")])
+    def test_rounds_are_numbered_continuously_across_phases(self):
+        self.assertEqual(ing.round_ids_of(DETAILS[1]), [(1, "101"), (2, "102"), (3, "103")])
 
 
 class PipelineTest(unittest.TestCase):
@@ -117,14 +137,16 @@ class PipelineTest(unittest.TestCase):
                     delay=0, date_from="2025-09-05", date_to="2026-01-01", country="PT",
                     formats="core constructed", out=str(Path(tmp) / "m.csv"))
                 self.assertEqual(ing.collect(args), 0)
-                rows = list(csv.DictReader(open(args.out, encoding="utf-8")))
-                self.assertEqual(len(rows), 3)  # 2 (ronda 1) + 1 (ronda 2); bye fora
+                with open(args.out, encoding="utf-8") as f:
+                    rows = list(csv.DictReader(f))
                 self.assertEqual({r["event_id"] for r in rows}, {"1"})
-                self.assertEqual([r["result"] for r in rows], ["A", "D", "B"])
-                # segunda corrida usa a cache dos detalhes/partidas (menos pedidos)
-                self.assertEqual(ing.collect(args), 0)
+                self.assertEqual([(r["round"], r["result"]) for r in rows],
+                                 [("1", "A"), ("1", "D"), ("2", "B"), ("3", "B")])
+                self.assertEqual(rows[0]["city"], "Lisboa")
+                self.assertEqual(ing.collect(args), 0)   # 2.a corrida usa a cache
         finally:
             server.shutdown()
+            server.server_close()
 
 
 if __name__ == "__main__":
