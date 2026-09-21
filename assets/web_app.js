@@ -48,6 +48,63 @@
     });
   }
 
+  var PAGE_SIZE = 25;
+
+  // Tabela com paginacao: as linhas vao todas para o HTML e o JS mostra 25 de cada vez.
+  function pagedTable(cls, head, rows, label, caption, id) {
+    return '<div class="tablewrap" data-paged' + (id ? ' id="' + id + '"' : '') + '><table class="' + cls + '">' +
+      (caption ? '<caption class="sr-only">' + caption + '</caption>' : '') +
+      '<thead><tr>' + head + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>' +
+      '<nav class="pager" aria-label="' + label + ' pages"></nav>';
+  }
+
+  function paginate(wrap, rows, nav) {
+    var shown = rows, page = 1, prev, next, status;
+    if (nav) {
+      nav.innerHTML = '<button type="button" data-dir="-1">Previous</button>' +
+        '<span class="pager-status" aria-live="polite"></span>' +
+        '<button type="button" data-dir="1">Next</button>';
+      prev = nav.firstChild; status = prev.nextSibling; next = nav.lastChild;
+      nav.addEventListener('click', function (ev) {
+        var b = ev.target.closest('button');
+        if (!b || b.disabled) return;
+        page += Number(b.getAttribute('data-dir'));
+        render();
+        var top = wrap.getBoundingClientRect().top;
+        if (top < 0) window.scrollTo(0, window.scrollY + top - 16);
+      });
+    }
+    function render() {
+      var total = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+      if (page > total) page = total;
+      var start = (page - 1) * PAGE_SIZE, end = start + PAGE_SIZE;
+      rows.forEach(function (r) { r.hidden = true; r.classList.remove('last'); });
+      shown.forEach(function (r, i) { r.hidden = !(i >= start && i < end); });
+      var visible = shown.slice(start, end);
+      if (visible.length) visible[visible.length - 1].classList.add('last');
+      if (nav) {
+        nav.hidden = shown.length <= PAGE_SIZE;
+        prev.disabled = page <= 1;
+        next.disabled = page >= total;
+        status.textContent = 'Page ' + page + ' of ' + total;
+      }
+      markScrollableTables();
+    }
+    return { show: function (list) { shown = list; page = 1; render(); } };
+  }
+
+  function wirePagers() {
+    var pagers = {};
+    [].slice.call(app.querySelectorAll('.tablewrap[data-paged]')).forEach(function (wrap) {
+      var rows = [].slice.call(wrap.querySelectorAll('tbody tr'));
+      var pg = paginate(wrap, rows, wrap.nextElementSibling);
+      pg.rows = rows;
+      pg.show(rows);
+      if (wrap.id) pagers[wrap.id] = pg;
+    });
+    return pagers;
+  }
+
   // ---------- ranking ----------
   function rankingView() {
     var m = D.meta;
@@ -57,12 +114,12 @@
       var nameAttr = p.realName ? ' title="' + esc(p.realName) + '"' : '';
       return '<tr' + (p.rank ? '' : ' class="prov"') + ' data-name="' + esc(fold(p.name)) + '">' +
         '<td class="num">' + (p.rank || '\u2013') + '</td>' +
-        '<td><a href="' + link(p.id) + '"' + nameAttr + '>' + esc(p.name) + '</a></td>' +
+        '<td class="txt"><a href="' + link(p.id) + '"' + nameAttr + '>' + esc(p.name) + '</a></td>' +
         '<td class="num elo">' + rnd(p.rating) + '</td>' +
         '<td class="num">' + p.games + '</td>' +
         '<td class="num wide">' + p.wins + '\u2013' + p.draws + '\u2013' + p.losses + '</td>' +
         '<td class="wide">' + form + '</td></tr>';
-    }).join('');
+    });
     var provNote = D.players.length > ranked.length
       ? ' Players with fewer than ' + m.minGames + ' matches appear at the bottom, unranked.' : '';
     return '<h1>Lorcana Portugal Elo Ranking</h1>' +
@@ -70,75 +127,93 @@
       ' events since ' + esc(m.since) + '.' + provNote + '</p>' +
       '<div class="search"><label class="sr-only" for="q">Search for a player</label>' +
       '<input id="q" type="search" placeholder="Search for a player" autocomplete="off"></div>' +
-      '<div class="tablewrap"><table class="ranking"><caption class="sr-only">Elo ranking</caption>' +
-      '<thead><tr><th class="num" scope="col">Rank</th><th scope="col">Player</th><th class="num" scope="col">Elo</th>' +
-      '<th class="num" scope="col">Matches</th><th class="num wide" scope="col">W\u2013D\u2013L</th>' +
-      '<th class="wide" scope="col">Last 5</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<p id="empty" class="empty" hidden>No player found. Check the spelling of the name.</p>' +
-      '<nav id="pager" class="pager" aria-label="Ranking pages"></nav>';
+      pagedTable('ranking',
+        '<th class="num" scope="col">Rank</th><th scope="col">Player</th><th class="num" scope="col">Elo</th>' +
+        '<th class="num" scope="col">Matches</th><th class="num wide" scope="col">W\u2013D\u2013L</th>' +
+        '<th class="wide" scope="col">Last 5</th>', rows, 'Ranking', 'Elo ranking', 'ranking-table') +
+      '<p id="empty" class="empty" hidden>No player found. Check the spelling of the name.</p>';
   }
 
-  var PAGE_SIZE = 25;
-
-  function wireSearch() {
+  function wireSearch(pg) {
     var input = document.getElementById('q');
-    if (!input) return;
-    var rows = [].slice.call(document.querySelectorAll('tbody tr[data-name]'));
+    if (!input || !pg) return;
     var empty = document.getElementById('empty');
-    var pager = document.getElementById('pager');
-    var page = 1;
     function apply() {
       var q = fold(query.trim());
-      var matches = rows.filter(function (r) {
+      var matches = pg.rows.filter(function (r) {
         return !q || r.getAttribute('data-name').indexOf(q) !== -1;
       });
-      var totalPages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
-      if (page > totalPages) page = totalPages;
-      var start = (page - 1) * PAGE_SIZE, end = start + PAGE_SIZE;
-      rows.forEach(function (r) { r.hidden = true; });
-      matches.forEach(function (r, i) { r.hidden = !(i >= start && i < end); });
+      pg.show(matches);
       empty.hidden = matches.length !== 0;
-      if (pager) {
-        if (matches.length > PAGE_SIZE) {
-          pager.innerHTML =
-            '<button type="button" id="prevPage"' + (page <= 1 ? ' disabled' : '') + '>Previous</button>' +
-            '<span class="pager-status">Page ' + page + ' of ' + totalPages + '</span>' +
-            '<button type="button" id="nextPage"' + (page >= totalPages ? ' disabled' : '') + '>Next</button>';
-          var prevBtn = document.getElementById('prevPage');
-          var nextBtn = document.getElementById('nextPage');
-          if (prevBtn) prevBtn.addEventListener('click', function () { page--; apply(); window.scrollTo(0, 0); });
-          if (nextBtn) nextBtn.addEventListener('click', function () { page++; apply(); window.scrollTo(0, 0); });
-        } else {
-          pager.innerHTML = '';
-        }
-      }
     }
     input.value = query;
-    input.addEventListener('input', function () { query = input.value; page = 1; apply(); });
+    input.addEventListener('input', function () { query = input.value; apply(); });
     apply();
   }
 
   // ---------- jogador ----------
-  function chart(name, ratings) {
-    var w = 640, h = 190, pl = 44, pr = 14, pt = 14, pb = 16, start = D.consts.start;
-    var lo = Math.min.apply(null, ratings.concat([start])) - 10;
-    var hi = Math.max.apply(null, ratings.concat([start])) + 10;
-    if (hi - lo < 60) { var mid = (hi + lo) / 2; lo = mid - 30; hi = mid + 30; }
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function dayNum(iso) { var p = iso.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 86400000; }
+
+  // ratings[0] e o Elo inicial; dates[i] e a data de ratings[i] (dates[0] = data da 1a partida).
+  // O eixo x e o tempo: partidas do mesmo dia repartem-se pela largura desse dia.
+  function chart(name, ratings, dates) {
+    var w = 640, h = 220, pl = 44, pr = 14, pt = 14, pb = 38, start = D.consts.start;
     var n = ratings.length;
-    function x(i) { return pl + (w - pl - pr) * (n > 1 ? i / (n - 1) : 0.5); }
+    var peak = Math.max.apply(null, ratings), low = Math.min.apply(null, ratings);
+    // margem so na geometria: os rotulos do eixo mostram o pico e o minimo reais
+    var lo = low - 10, hi = peak + 10;
+    if (hi - lo < 60) { var mid = (hi + lo) / 2; lo = mid - 30; hi = mid + 30; }
+
+    var perDay = {};
+    dates.slice(1).forEach(function (d) { perDay[d] = (perDay[d] || 0) + 1; });
+    var seen = {}, t = [dayNum(dates[0])];
+    dates.slice(1).forEach(function (d) {
+      seen[d] = (seen[d] || 0) + 1;
+      t.push(dayNum(d) + seen[d] / (perDay[d] + 1));
+    });
+    var t0 = t[0], t1 = Math.floor(t[n - 1]) + 1;
+    function x(i) { return pl + (w - pl - pr) * (n > 1 ? (t[i] - t0) / (t1 - t0) : 0.5); }
     function y(v) { return pt + (h - pt - pb) * (hi - v) / (hi - lo); }
     var base = y(start);
     function tick(v) {
-      if (Math.abs(y(v) - base) < 16) return '';
+      if (Math.abs(y(v) - base) < 13) return '';
       return '<text class="chart-tick" x="' + (pl - 6) + '" y="' + (y(v) + 4).toFixed(1) +
         '" text-anchor="end">' + rnd(v) + '</text>';
     }
+
+    // meses: linha e rotulo no dia 1; o rotulo do 1.o mes fica na margem esquerda se houver espaco
+    var months = '', lastEnd = 0, drawn = false;
+    function monthLabel(px, month, year) {
+      if (px < lastEnd || px + 22 > w - 2) return;
+      months += '<text class="chart-tick" x="' + px.toFixed(1) + '" y="' + (h - 19) + '">' + month + '</text>';
+      if (year) months += '<text class="chart-tick" x="' + px.toFixed(1) + '" y="' + (h - 6) + '">' + year + '</text>';
+      lastEnd = px + 30;
+      drawn = true;
+    }
+    var first = new Date(t0 * 86400000);
+    var yr = first.getUTCFullYear(), mo = first.getUTCMonth();
+    var bounds = [];
+    for (var d = Date.UTC(yr, mo + 1, 1) / 86400000; d < t1; d = Date.UTC(yr, ++mo + 1, 1) / 86400000) {
+      bounds.push({ px: pl + (w - pl - pr) * (d - t0) / (t1 - t0), m: new Date(d * 86400000) });
+    }
+    if (!bounds.length || bounds[0].px - pl >= 28) {
+      monthLabel(pl, MONTHS[first.getUTCMonth()], first.getUTCFullYear());
+    }
+    bounds.forEach(function (bd) {
+      months += '<line class="chart-grid" x1="' + bd.px.toFixed(1) + '" x2="' + bd.px.toFixed(1) +
+        '" y1="' + pt + '" y2="' + (h - pb) + '"/>';
+      monthLabel(bd.px + 3, MONTHS[bd.m.getUTCMonth()],
+        !drawn || bd.m.getUTCMonth() === 0 ? bd.m.getUTCFullYear() : '');
+    });
+
     var pts = ratings.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
     var label = 'Evolu\u00e7\u00e3o do Elo de ' + name + ': de ' + rnd(ratings[0]) + ' para ' + rnd(ratings[n - 1]);
     return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(label) + '">' +
+      months +
       '<line class="chart-base" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + base.toFixed(1) + '" y2="' + base.toFixed(1) + '"/>' +
       '<text class="chart-tick" x="' + (pl - 6) + '" y="' + (base + 4).toFixed(1) + '" text-anchor="end">' + rnd(start) + '</text>' +
-      tick(hi) + tick(lo) +
+      tick(peak) + tick(low) +
       '<polyline class="chart-line" points="' + pts + '"/>' +
       '<circle class="chart-dot" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(ratings[n - 1]).toFixed(1) + '" r="4"/></svg>';
   }
@@ -180,11 +255,11 @@
       return '<tr><td>' + cell + tag + '</td><td class="num">' + o.games + '</td>' +
         '<td class="num wide">' + o.wins + '\u2013' + o.draws + '\u2013' + o.losses + '</td>' +
         '<td class="num">' + pct + ' %</td></tr>';
-    }).join('');
-    return '<h2>Head-to-head</h2><div class="tablewrap"><table class="matches">' +
-      '<thead><tr><th scope="col">Opponent</th><th class="num" scope="col">Matches</th>' +
-      '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Win %</th></tr></thead>' +
-      '<tbody>' + rows + '</tbody></table></div>';
+    });
+    return '<h2>Head-to-head</h2>' + pagedTable('matches',
+      '<th scope="col">Opponent</th><th class="num" scope="col">Matches</th>' +
+      '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Win %</th>',
+      rows, 'Head-to-head');
   }
 
   function eventsSection(p) {
@@ -203,20 +278,21 @@
     if (!order.length) return '';
     var rows = order.slice().reverse().map(function (eid) {
       var e = byEv[eid], ev = D.events[eid] || {}, evName = ev.name || eid;
-      return '<tr><td>' + fmtDate(e.date) + '</td><td>' + eventLink(eid, evName) + '</td>' +
+      return '<tr><td>' + fmtDate(e.date) + '</td><td class="txt">' + eventLink(eid, evName) + '</td>' +
         '<td class="num">' + e.rounds + '</td><td class="num wide">' + e.w + '\u2013' + e.d + '\u2013' + e.l + '</td>' +
         '<td class="num">' + delta(e.end - e.start) + '</td></tr>';
-    }).join('');
-    return '<h2>Events</h2><div class="tablewrap"><table class="matches">' +
-      '<thead><tr><th scope="col">Date</th><th scope="col">Event</th><th class="num" scope="col">Rounds</th>' +
-      '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Change</th></tr></thead>' +
-      '<tbody>' + rows + '</tbody></table></div>';
+    });
+    return '<h2>Events</h2>' + pagedTable('matches',
+      '<th scope="col">Date</th><th scope="col">Event</th><th class="num" scope="col">Rounds</th>' +
+      '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Change</th>',
+      rows, 'Events');
   }
 
   function playerView(id) {
     var p = byId[id];
     if (!p) return notFound();
     var ratings = [D.consts.start].concat(p.h.map(function (h) { return h[5]; }));
+    var dates = [p.h.length ? p.h[0][0] : '1970-01-01'].concat(p.h.map(function (h) { return h[0]; }));
     var standing = p.rank
       ? ordinal(p.rank) + ' out of ' + D.meta.ranked + ' ranked players.'
       : 'Not yet ranked: needs ' + D.meta.minGames + ' matches, has ' + p.games + '.';
@@ -226,23 +302,23 @@
       var opp = h[3] && byId[h[3]]
         ? '<a href="' + link(h[3]) + '">' + esc(byId[h[3]].name) + '</a>' : 'Anonymous player';
       var evName = ev.name || h[1];
-      return '<tr><td>' + fmtDate(h[0]) + '</td><td>' + eventLink(h[1], evName) + '</td><td class="num">' + h[2] +
+      return '<tr><td>' + fmtDate(h[0]) + '</td><td class="txt">' + eventLink(h[1], evName) + '</td><td class="num">' + h[2] +
         '</td><td>' + opp + '</td><td>' + chip(h[4]) + '</td><td class="num">' + rnd(h[5]) +
         ' <span class="delta">(' + delta(h[6]) + ')</span></td></tr>';
-    }).join('');
+    });
     var realNameLine = p.realName ? '<p class="crumb-sub">' + esc(p.realName) + '</p>' : '';
     return '<p class="crumb"><a href="#/">Ranking</a></p><h1>' + esc(p.name) + '</h1>' + realNameLine +
       '<div class="hero"><p class="bignum" aria-label="Current Elo">' + rnd(p.rating) + '</p>' +
       '<p class="hero-text">' + standing + '<br>Peak of ' + rnd(p.peak) + '. ' + p.wins + ' wins, ' +
       p.draws + ' draws and ' + p.losses + ' losses (' + pct + '% win rate).</p></div>' +
-      '<h2>Elo progression</h2>' + chart(p.name, ratings) +
+      '<h2>Elo progression</h2>' + chart(p.name, ratings, dates) +
       statGrid(p) +
       h2hSection(p) +
       eventsSection(p) +
-      '<h2>Matches</h2><div class="tablewrap"><table class="matches"><thead><tr><th scope="col">Date</th>' +
-      '<th scope="col">Event</th><th class="num" scope="col">Round</th><th scope="col">Opponent</th>' +
-      '<th scope="col">Result</th><th class="num" scope="col">Elo after</th></tr></thead><tbody>' +
-      rows + '</tbody></table></div>';
+      '<h2>Matches</h2>' + pagedTable('matches',
+        '<th scope="col">Date</th><th scope="col">Event</th><th class="num" scope="col">Round</th>' +
+        '<th scope="col">Opponent</th><th scope="col">Result</th><th class="num" scope="col">Elo after</th>',
+        rows, 'Matches');
   }
 
   // ---------- events ----------
@@ -252,13 +328,14 @@
     var rows = list.map(function (e) {
       var where = [e.store, e.city].filter(Boolean).join(', ');
       var evName = e.name || e.id;
-      return '<tr><td>' + fmtDate(e.date) + '</td><td>' + eventLink(e.id, evName) + '</td><td>' + esc(where) +
-        '</td><td class="num">' + e.players + '</td><td class="num">' + e.matches + '</td></tr>';
-    }).join('');
+      return '<tr><td>' + fmtDate(e.date) + '</td><td class="txt">' + eventLink(e.id, evName) +
+        '</td><td class="txt wide">' + esc(where) +
+        '</td><td class="num wide">' + e.players + '</td><td class="num">' + e.matches + '</td></tr>';
+    });
     return '<h1>Events</h1><p class="lead">Events at Portuguese stores with results recorded since ' +
-      esc(D.meta.since) + '.</p><div class="tablewrap"><table class="matches"><thead><tr><th scope="col">Date</th>' +
-      '<th scope="col">Event</th><th scope="col">Store</th><th class="num" scope="col">Players</th>' +
-      '<th class="num" scope="col">Matches</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      esc(D.meta.since) + '.</p>' + pagedTable('matches',
+      '<th scope="col">Date</th><th scope="col">Event</th><th class="wide" scope="col">Store</th>' +
+      '<th class="num wide" scope="col">Players</th><th class="num" scope="col">Matches</th>', rows, 'Events');
   }
 
   // ---------- about ----------
@@ -310,12 +387,11 @@
     }
     app.innerHTML = html;
     document.title = title + ' \u00b7 Lorcana Portugal Elo';
-    markScrollableTables();
     [].slice.call(document.querySelectorAll('nav a')).forEach(function (a) {
       if (a.getAttribute('data-key') === key) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
-    wireSearch();
+    wireSearch(wirePagers()['ranking-table']);
     if (!first) {
       window.scrollTo(0, 0);
       var h1 = app.querySelector('h1');

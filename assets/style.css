@@ -146,15 +146,14 @@ p { max-width: 42rem; margin: 0 0 1rem; }
   width: 1.5rem; height: 100%; margin-left: -1.5rem; pointer-events: none;
   background: linear-gradient(to right, transparent, color-mix(in srgb, var(--ink) 12%, transparent));
 }
-table { width: 100%; min-width: max-content; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { padding: .7rem .9rem; text-align: left; vertical-align: middle; white-space: nowrap; }
 th { font-size: .85rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line-strong); }
 td { border-bottom: 1px solid var(--line); }
-tbody tr:last-child td { border-bottom: 0; }
+tbody tr.last td { border-bottom: 0; }
 .num { text-align: right; }
-.matches td:nth-child(2), .matches th:nth-child(2) {
-  max-width: 15rem; overflow: hidden; text-overflow: ellipsis;
-}
+/* nomes de evento e loja quebram linha em vez de empurrar as colunas seguintes para fora da tabela */
+td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
 .ranking tbody tr:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
 .ranking td:nth-child(2) a { font-weight: 600; text-decoration: none; }
 .ranking td:nth-child(2) a:hover { text-decoration: underline; }
@@ -218,6 +217,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .chart-base { stroke: var(--line-strong); stroke-dasharray: 4 4; }
 .chart-line { fill: none; stroke: var(--sapphire); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .chart-dot { fill: var(--sapphire); }
+.chart-grid { stroke: var(--line); stroke-width: 1; }
 .chart-tick { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
 
 /* rodape */
@@ -227,4 +227,6 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 40rem) {
   .wide { display: none; }
   th, td { padding: .65rem .6rem; }
+  td.txt { min-width: 0; }
+  th, td { font-size: .9rem; }
 }
