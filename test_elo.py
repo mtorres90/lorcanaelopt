@@ -1,7 +1,7 @@
 import unittest
 
 from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING, Match,
-                 compute, expected_score, k_factor)
+                 compute, event_k_multiplier, expected_score, k_factor)
 
 
 def m(i, a, b, score, rnd=1, date="2026-01-10", event="e1"):
@@ -58,6 +58,26 @@ class EloTests(unittest.TestCase):
         s1, _ = compute([early, late])
         s2, _ = compute([late, early])
         self.assertAlmostEqual(s1["a"].rating, s2["a"].rating)
+
+    def test_event_size_multiplier_tiers(self):
+        self.assertEqual(event_k_multiplier(2), 1.0)
+        self.assertEqual(event_k_multiplier(16), 1.0)
+        self.assertEqual(event_k_multiplier(17), 1.25)
+        self.assertEqual(event_k_multiplier(32), 1.25)
+        self.assertEqual(event_k_multiplier(33), 1.5)
+        self.assertEqual(event_k_multiplier(100), 1.5)
+
+    def test_small_event_uses_baseline_multiplier(self):
+        _, hist = compute([m(1, "a", "b", 1.0)])  # event "e1", 2 players -> x1
+        row = next(h for h in hist if h.player == "a")
+        self.assertAlmostEqual(row.delta, K_PROVISIONAL * 0.5)
+
+    def test_big_event_moves_rating_more(self):
+        # 18 distinct players (9 matches) in the same event -> tier x1.25
+        ms = [m(i, f"p{2 * i}", f"p{2 * i + 1}", 1.0, event="big") for i in range(9)]
+        _, hist = compute(ms)
+        row = next(h for h in hist if h.player == "p0")
+        self.assertAlmostEqual(row.delta, K_PROVISIONAL * 1.25 * 0.5)
 
 
 if __name__ == "__main__":
