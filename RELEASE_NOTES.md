@@ -1,5 +1,22 @@
 # Release notes
 
+## 2026-09-22: Player of the week and seasons
+
+### New
+
+- **Player of the week page.** The player who gained the most Elo each week (Monday to Sunday, at least 4 matches
+  and a positive gain) gets the title. The page shows last week's winner, this week's leader so far, a top 10 of
+  players with the most titles, and the full log of past weeks.
+- **Most improved player per season.** Seasons follow set releases (Set 9 on 2025-09-05 through Set 14 on
+  2026-10-23, listed in `seasons.txt`). When the next set comes out the season closes and the player who gained the
+  most Elo over it (at least 15 matches and 3 events) gets the prize; the current season shows who is leading.
+- The About page has a short section on the awards.
+
+### Changed
+
+- **All paragraph text now spans the full width of the tables** (page introductions, notes, error messages),
+  instead of stopping at a narrower column. The About page and footer already did.
+
 ## 2026-09-21 (third release): Cleaner player list
 
 ### Changed

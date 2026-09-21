@@ -13,6 +13,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+import awards
 import curate
 import db
 from build_site import ASSETS_DIR, STYLE_CSS, fold, fmt_date, load_opt_out
@@ -45,6 +46,7 @@ __DEMO__
 <nav aria-label="Principal" data-i18n-aria="navMain">
 <a href="#/" data-key="ranking" data-i18n="navRanking">Ranking</a>
 <a href="#/international" data-key="international" data-i18n="navIntl">Internacional</a>
+<a href="#/awards" data-key="awards" data-i18n="navAwards">Jogador da semana</a>
 <a href="#/events" data-key="events" data-i18n="navEvents">Eventos</a>
 <a href="#/about" data-key="about" data-i18n="navAbout">Sobre</a>
 </nav>
@@ -165,6 +167,13 @@ def build(args: argparse.Namespace) -> None:
             "matches": len(ms),
         }
 
+    today = date.fromisoformat(args.today) if getattr(args, "today", None) else date.today()
+    awards_data = awards.compute_awards(
+        history, hidden, today, awards.load_seasons(getattr(args, "seasons", awards.SEASONS_FILE)),
+        getattr(args, "potw_min_matches", awards.WEEK_MIN_MATCHES),
+        getattr(args, "season_min_matches", awards.SEASON_MIN_MATCHES),
+        getattr(args, "season_min_events", awards.SEASON_MIN_EVENTS))
+
     data = {
         "meta": {"since": fmt_date(args.date_from), "matches": len(matches), "events": len(events),
                  "minGames": args.min_games, "ranked": len(ranked), "contact": args.contact,
@@ -174,6 +183,7 @@ def build(args: argparse.Namespace) -> None:
                    "prov": PROVISIONAL_GAMES},
         "players": players,
         "events": events,
+        "awards": awards_data,
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     demo = ('<p class="demo" data-i18n="demo">Dados de exemplo: os jogadores e os resultados são inventados para testar o site.</p>'
@@ -202,6 +212,14 @@ def main() -> None:
     ap.add_argument("--opt-out", default="opt_out.txt")
     ap.add_argument("--elorcana", default="raw/elorcana.json",
                     help="Elo internacional obtido por fetch_elorcana.py (opcional)")
+    ap.add_argument("--seasons", default=awards.SEASONS_FILE, help="datas de lancamento dos sets (epocas)")
+    ap.add_argument("--potw-min-matches", type=int, default=awards.WEEK_MIN_MATCHES,
+                    help="partidas minimas numa semana para ser jogador da semana")
+    ap.add_argument("--season-min-matches", type=int, default=awards.SEASON_MIN_MATCHES,
+                    help="partidas minimas numa epoca para o premio de quem mais evoluiu")
+    ap.add_argument("--season-min-events", type=int, default=awards.SEASON_MIN_EVENTS,
+                    help="eventos minimos numa epoca para o premio de quem mais evoluiu")
+    ap.add_argument("--today", default=None, help=argparse.SUPPRESS)  # so para testes: data de hoje AAAA-MM-DD
     ap.add_argument("--contact", default="")
     ap.add_argument("--demo", action="store_true")
     build(ap.parse_args())

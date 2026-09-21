@@ -131,12 +131,10 @@ a:focus-visible, input:focus-visible, button:focus-visible {
 h1, h2 { font-family: var(--font-display); letter-spacing: -.02em; line-height: 1.12; }
 h1 { font-size: clamp(1.9rem, 5vw, 2.9rem); font-weight: 700; margin: 1.5rem 0 .6rem; }
 h2 { font-size: 1.35rem; font-weight: 700; margin: 2.2rem 0 .7rem; }
-p { max-width: 42rem; margin: 0 0 1rem; }
+/* todo o texto ocupa a largura das tabelas (sem limite de largura nos paragrafos) */
+p { margin: 0 0 1rem; }
 .lead { color: var(--muted); font-size: 1.05rem; }
-.note { color: var(--muted); font-size: .9rem; margin-top: 1rem; max-width: none; }
-
-/* pagina Sobre: os paragrafos ocupam a largura das tabelas */
-.about p { max-width: none; }
+.note { color: var(--muted); font-size: .9rem; margin-top: 1rem; }
 .crumb { margin: 1.2rem 0 0; font-size: .95rem; }
 .crumb a { color: var(--muted); }
 .crumb + h1 { margin-top: .4rem; }
@@ -250,7 +248,6 @@ td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
 
 /* rodape */
 .foot { padding-top: 2.5rem; padding-bottom: 3rem; color: var(--muted); font-size: .9rem; }
-.foot p { max-width: none; }
 
 /* ecras estreitos: esconde colunas secundarias */
 @media (max-width: 40rem) {

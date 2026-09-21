@@ -1,0 +1,9 @@
+# Epocas: uma por set, a comecar no dia de lancamento do set (lancamento em loja/retalho, nao o pre-lancamento).
+# A epoca dura ate ao dia de lancamento do set seguinte. Formato: AAAA-MM-DD  Nome
+# Fontes das datas: Wikipedia (Disney Lorcana) e lorcanaplayer.com. Quando sair um set novo, junta uma linha.
+2025-09-05  Set 9 - Fabled
+2025-11-14  Set 10 - Whispers in the Well
+2026-02-20  Set 11 - Winterspell
+2026-05-15  Set 12 - Wilds Unknown
+2026-07-24  Set 13 - Attack of the Vine!
+2026-10-23  Set 14 - Hyperia City

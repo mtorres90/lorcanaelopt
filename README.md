@@ -40,10 +40,19 @@ The Play Hub blocks requests from browsers on other sites (CORS), so collection 
 | `fetch_elorcana.py` | Fetches each player's international Elo from elorcana.com (Play Hub profiles only, matched by nickname) and caches it in `raw/elorcana.json` |
 | `curate.py` | Rules applied before the Elo is calculated: excluded events, merged accounts, minimum events. Used by both the site and the elorcana fetch |
 | `excluded_events.txt`, `player_merges.txt` | Edit these to exclude an event by name or merge two accounts. When the site is built it lists names shared by different ids, to help you spot more duplicates |
+| `awards.py`, `seasons.txt` | Player of the week and most improved player per season. `seasons.txt` lists the set release dates that start each season; add a line when a new set comes out |
 | `build_web.py` | Generates the single page (`index.html`) with ranking, players, events and about |
 | `build_site.py` | Alternative: multi-page site |
 | `make_sample_data.py` | Made-up data for trying things out |
 | `.github/workflows/` | `probe.yml` (discovery) and `update.yml` (nightly update and publishing) |
+
+## Player of the week and seasons
+
+The **Player of the week** page shows, from the same curated matches as the ranking:
+
+- **Weekly title:** the player who gained the most Elo in a week (Monday to Sunday), with at least 4 matches that week and a positive gain (`--potw-min-matches`). Ties go to more matches, then higher Elo. The week in progress is shown as "so far" and only counts once it has ended.
+- **Top 10** by number of weekly titles, and the full **weekly log**.
+- **Most improved player of each season:** a season starts on a set's release date (`seasons.txt`) and ends when the next set is released, which is when the prize is awarded. Improvement is the Elo gained across the season, with at least 15 matches and 3 events in it (`--season-min-matches`, `--season-min-events`). The current season shows who is leading so far.
 
 ## International Elo (elorcana.com)
 

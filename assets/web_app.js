@@ -13,7 +13,7 @@
   // Todo o texto visivel vive aqui. {nome} e substituido por t(chave, {nome: valor}).
   var T = {
     en: {
-      navMain: 'Main', navRanking: 'Ranking', navIntl: 'International', navEvents: 'Events', navAbout: 'About',
+      navMain: 'Main', navRanking: 'Ranking', navIntl: 'International', navAwards: 'Player of the week', navEvents: 'Events', navAbout: 'About',
       demo: 'Sample data: players and results are made up to test the site.',
       footer: 'Fan project, not affiliated with Ravensburger or Disney. Disney Lorcana is a trademark of its respective owners. Results sourced from the Ravensburger Play Hub. Updated on {date}.',
       win: 'Win', loss: 'Loss', draw: 'Draw', w: 'W', d: 'D', l: 'L', wdl: 'W\u2013D\u2013L',
@@ -42,6 +42,19 @@
       standingRanked: '{ord} out of {ranked} ranked players.',
       standingUnranked: 'Not yet ranked: needs {min} matches, has {games}.',
       currentElo: 'Current Elo',
+      awardsTitle: 'Player of the week',
+      awardsLead: 'Each week (Monday to Sunday) the title goes to the player who gained the most Elo, with at least {min} matches that week and a positive gain. Each season starts when a new set is released; when the next set comes out, the player who improved the most that season gets the Most improved prize.',
+      awardsLast: 'Last week', awardsNow: 'This week so far',
+      awardsTileSub: '{gain} Elo · {n} matches · {week}',
+      awardsNone: 'No qualifying player', awardsEmpty: 'No player of the week yet.',
+      awardsTopH: 'Most player-of-the-week titles',
+      colTitles: 'Titles', colLatestTitle: 'Latest title (week of)',
+      awardsSeasonsH: 'Most improved player of each season',
+      awardsSeasonsNote: 'Improvement is the Elo gained over the season, from before the first match of the season to the last one. To qualify: at least {matches} matches and {events} events in the season. Players who start mid-season count from the starting Elo of {start}.',
+      colSeason: 'Season', colMostImproved: 'Most improved', colGain: 'Gain', colFromTo: 'From → to',
+      seasonDone: 'Prize awarded', seasonLive: 'In progress', seasonNoWinner: 'No qualifying player',
+      awardsLogH: 'Weekly log', colWeek: 'Week', colEloAfterWeek: 'Elo after',
+      alsoRunners: 'Also: {list}',
       intlElo: 'International Elo', intlOn: 'See {name} on elorcana.com',
       intlTitle: 'International Elo of Portuguese players',
       intlLead: '{n} Portuguese players with an international Elo on elorcana.com, ranked by it. Data updated on {date}.',
@@ -73,6 +86,8 @@
       aboutHow3: 'Bigger events also count for more: matches at an event with 17\u201332 players move rating 1.25\u00d7 as much as usual, and events with 33 or more players move it 1.5\u00d7. Smaller events use the normal rate.',
       aboutRankH: 'Who gets a rank',
       aboutRank: 'Players with at least {min} matches. Others appear at the bottom of the table, unranked.',
+      aboutAwardsH: 'Awards',
+      aboutAwards: 'The Player of the week page names the player who gained the most Elo each week and the player who improved the most in each season. Seasons follow the release of new sets.',
       aboutIntlH: 'International Elo',
       aboutIntl: 'Where available, each player page also shows the international Elo from {site}, which rates players worldwide using official Play Hub events. It is a separate rating from the Portugal Elo on this site and is shown for reference only.',
       aboutPrivH: 'Privacy',
@@ -83,7 +98,7 @@
       notFound: 'This player doesn\u2019t exist or has been removed.', backToRanking: 'Back to ranking'
     },
     pt: {
-      navMain: 'Principal', navRanking: 'Ranking', navIntl: 'Internacional', navEvents: 'Eventos', navAbout: 'Sobre',
+      navMain: 'Principal', navRanking: 'Ranking', navIntl: 'Internacional', navAwards: 'Jogador da semana', navEvents: 'Eventos', navAbout: 'Sobre',
       demo: 'Dados de exemplo: os jogadores e os resultados s\u00e3o inventados para testar o site.',
       footer: 'Projeto de f\u00e3s, sem afilia\u00e7\u00e3o \u00e0 Ravensburger ou \u00e0 Disney. Disney Lorcana \u00e9 uma marca registada dos respetivos propriet\u00e1rios. Resultados obtidos do Ravensburger Play Hub. Atualizado em {date}.',
       win: 'Vit\u00f3ria', loss: 'Derrota', draw: 'Empate', w: 'V', d: 'E', l: 'D', wdl: 'V\u2013E\u2013D',
@@ -101,6 +116,19 @@
       standingRanked: '{ord} de {ranked} jogadores classificados.',
       standingUnranked: 'Ainda sem classifica\u00e7\u00e3o: precisa de {min} partidas, tem {games}.',
       currentElo: 'Elo atual',
+      awardsTitle: 'Jogador da semana',
+      awardsLead: 'Em cada semana (de segunda a domingo) o título vai para o jogador que mais Elo ganhou, com pelo menos {min} partidas nessa semana e um ganho positivo. Cada época começa quando sai um set novo; quando o set seguinte sai, o jogador que mais evoluiu nessa época recebe o prémio de Mais evoluído.',
+      awardsLast: 'Semana passada', awardsNow: 'Esta semana até agora',
+      awardsTileSub: '{gain} de Elo · {n} partidas · {week}',
+      awardsNone: 'Nenhum jogador elegível', awardsEmpty: 'Ainda não há jogador da semana.',
+      awardsTopH: 'Mais títulos de jogador da semana',
+      colTitles: 'Títulos', colLatestTitle: 'Último título (semana de)',
+      awardsSeasonsH: 'Jogador que mais evoluiu em cada época',
+      awardsSeasonsNote: 'A evolução é o Elo ganho ao longo da época, desde antes da primeira partida da época até à última. Para concorrer: pelo menos {matches} partidas e {events} eventos na época. Quem começa a meio da época conta a partir do Elo inicial de {start}.',
+      colSeason: 'Época', colMostImproved: 'Mais evoluído', colGain: 'Ganho', colFromTo: 'De → para',
+      seasonDone: 'Prémio atribuído', seasonLive: 'Em curso', seasonNoWinner: 'Nenhum jogador elegível',
+      awardsLogH: 'Histórico semanal', colWeek: 'Semana', colEloAfterWeek: 'Elo depois',
+      alsoRunners: 'Também: {list}',
       intlElo: 'Elo internacional', intlOn: 'Ver {name} no elorcana.com',
       intlTitle: 'Elo internacional dos jogadores portugueses',
       intlLead: '{n} jogadores portugueses com Elo internacional no elorcana.com, ordenados por ele. Dados atualizados em {date}.',
@@ -130,6 +158,8 @@
       aboutHow3: 'Os eventos maiores tamb\u00e9m valem mais: as partidas num evento com 17\u201332 jogadores movem o Elo 1,25\u00d7 mais do que o normal, e os eventos com 33 ou mais jogadores movem-no 1,5\u00d7. Os eventos mais pequenos usam a taxa normal.',
       aboutRankH: 'Quem tem classifica\u00e7\u00e3o',
       aboutRank: 'Jogadores com pelo menos {min} partidas. Os restantes aparecem no fim da tabela, sem classifica\u00e7\u00e3o.',
+      aboutAwardsH: 'Prémios',
+      aboutAwards: 'A página Jogador da semana mostra quem mais Elo ganhou em cada semana e quem mais evoluiu em cada época. As épocas seguem o lançamento de novos sets.',
       aboutIntlH: 'Elo internacional',
       aboutIntl: 'Quando existe, a página de cada jogador mostra também o Elo internacional do {site}, que classifica jogadores de todo o mundo com eventos oficiais do Play Hub. É uma classificação à parte do Elo Portugal deste site e serve apenas de referência.',
       aboutPrivH: 'Privacidade',
@@ -593,6 +623,80 @@
       rows, t('eventsTitle'));
   }
 
+  // ---------- awards: jogador da semana e mais evoluido ----------
+  // compact = "14/09 – 20/09/2026" (repete o ano so quando a semana muda de ano)
+  function weekRange(w, compact) {
+    if (compact && w.start.slice(0, 4) === w.end.slice(0, 4)) {
+      return fmtDate(w.start).slice(0, 5) + ' – ' + fmtDate(w.end);
+    }
+    return fmtDate(w.start) + ' – ' + fmtDate(w.end);
+  }
+  function playerLink(id) {
+    var p = byId[id];
+    return p ? '<a href="' + link(id) + '">' + esc(p.name) + '</a>' : esc(t('anon'));
+  }
+  function plus(x) { return '+' + rnd(x); }
+
+  function awardsView() {
+    var A = D.awards || { weeks: [], top: [], seasons: [], rules: {} };
+    var R = A.rules;
+    var head = '<h1>' + t('awardsTitle') + '</h1><p class="lead">' + t('awardsLead', { min: R.weekMin }) + '</p>';
+    if (!A.weeks.length && !A.seasons.length) return head + '<p>' + t('awardsEmpty') + '</p>';
+
+    var done = A.weeks.filter(function (w) { return w.final; });
+    var live = A.weeks.filter(function (w) { return !w.final; });
+    function tile(label, w) {
+      return statTile(label, w ? playerLink(w.p) : '–',
+        w ? t('awardsTileSub', { gain: plus(w.gain), n: w.n, week: weekRange(w) }) : t('awardsNone'));
+    }
+    var tiles = '<div class="stat-grid">' + tile(t('awardsLast'), done[done.length - 1]) +
+      tile(t('awardsNow'), live[live.length - 1]) + '</div>';
+
+    var topRows = A.top.map(function (r, i) {
+      return '<tr><td class="num">' + (i + 1) + '</td><td class="txt">' + playerLink(r.p) + '</td>' +
+        '<td class="num elo">' + r.titles + '</td><td class="num wide">' + fmtDate(r.last) + '</td></tr>';
+    });
+    var top = topRows.length ? '<h2>' + t('awardsTopH') + '</h2>' + pagedTable('ranking',
+      '<th class="num" scope="col">' + t('colRank') + '</th><th scope="col">' + t('colPlayer') + '</th>' +
+      '<th class="num" scope="col">' + t('colTitles') + '</th><th class="num wide" scope="col">' + t('colLatestTitle') + '</th>',
+      topRows, t('awardsTopH'), t('awardsTopH')) : '';
+
+    var seasonRows = A.seasons.slice().reverse().map(function (s) {
+      var win = s.top[0], span = fmtDate(s.start) + ' –' + (s.through ? ' ' + fmtDate(s.through) : '');
+      var runners = s.top.slice(1).map(function (x, i) {
+        return (i + 2) + '. ' + playerLink(x.p) + ' ' + plus(x.gain);
+      }).join(' · ');
+      var who = win ? '<strong>' + playerLink(win.p) + '</strong>' +
+        (runners ? '<br><span class="delta">' + t('alsoRunners', { list: runners }) + '</span>' : '')
+        : '<span class="delta">' + t('seasonNoWinner') + '</span>';
+      var status = s.done ? (win ? '<span class="tag tag-w">' + t('seasonDone') + '</span>' : '')
+        : '<span class="tag">' + t('seasonLive') + '</span>';
+      return '<tr><td class="txt">' + esc(s.name) + '<br><span class="delta">' + span + '</span>' +
+        (status ? '<br>' + status : '') + '</td>' +
+        '<td class="txt">' + who + '</td>' +
+        '<td class="num elo">' + (win ? plus(win.gain) : '–') + '</td>' +
+        '<td class="num wide">' + (win ? rnd(win.from) + ' → ' + rnd(win.to) : '–') + '</td></tr>';
+    });
+    var seasons = seasonRows.length ? '<h2>' + t('awardsSeasonsH') + '</h2><p class="note">' +
+      t('awardsSeasonsNote', { matches: R.seasonMinMatches, events: R.seasonMinEvents, start: D.consts.start }) + '</p>' +
+      pagedTable('matches',
+        '<th scope="col">' + t('colSeason') + '</th><th scope="col">' + t('colMostImproved') + '</th>' +
+        '<th class="num" scope="col">' + t('colGain') + '</th><th class="num wide" scope="col">' + t('colFromTo') + '</th>',
+        seasonRows, t('awardsSeasonsH'), t('awardsSeasonsH')) : '';
+
+    var logRows = done.slice().reverse().map(function (w) {
+      return '<tr><td>' + weekRange(w, true) + '</td><td class="txt">' + playerLink(w.p) + '</td>' +
+        '<td class="num elo">' + plus(w.gain) + '</td><td class="num wide">' + w.n + '</td>' +
+        '<td class="num wide">' + rnd(w.elo) + '</td></tr>';
+    });
+    var log = logRows.length ? '<h2>' + t('awardsLogH') + '</h2>' + pagedTable('matches',
+      '<th scope="col">' + t('colWeek') + '</th><th scope="col">' + t('colPlayer') + '</th>' +
+      '<th class="num" scope="col">' + t('colGain') + '</th><th class="num wide" scope="col">' + t('colMatches') + '</th>' +
+      '<th class="num wide" scope="col">' + t('colEloAfterWeek') + '</th>', logRows, t('awardsLogH'), t('awardsLogH')) : '';
+
+    return head + tiles + top + seasons + log;
+  }
+
   // ---------- international ----------
   function intlView() {
     var list = D.players.filter(function (p) { return p.intl; })
@@ -628,6 +732,7 @@
       '<p>' + t('aboutHow2', { prov: c.prov, k1: c.k1, k2: c.k2 }) + '</p>' +
       '<p>' + t('aboutHow3') + '</p>' +
       '<h2>' + t('aboutRankH') + '</h2><p>' + t('aboutRank', { min: m.minGames }) + '</p>' +
+      '<h2>' + t('aboutAwardsH') + '</h2><p>' + t('aboutAwards') + '</p>' +
       (D.meta.intl ? '<h2>' + t('aboutIntlH') + '</h2><p>' + t('aboutIntl', {
         site: '<a href="https://elorcana.com" target="_blank" rel="noopener noreferrer">elorcana.com</a>' }) + '</p>' : '') +
       '<h2>' + t('aboutPrivH') + '</h2><p>' + t('aboutPriv', { contact: contact, anon: t('anon') }) + '</p></div>';
@@ -655,6 +760,8 @@
       html = eventsView(); key = 'events'; title = t('navEvents');
     } else if (parts[0] === 'international') {
       html = intlView(); key = 'international'; title = t('navIntl');
+    } else if (parts[0] === 'awards') {
+      html = awardsView(); key = 'awards'; title = t('navAwards');
     } else if (parts[0] === 'about') {
       html = aboutView(); key = 'about'; title = t('navAbout');
     } else {
