@@ -1,156 +1,216 @@
-#!/usr/bin/env python3
-"""Gera a versao web de UMA so pagina (web/index.html), pronta a alojar ou publicar.
+/* Elo Lorcana Portugal
+   Uma decoracao so: a faixa com as seis tintas. O resto e leitura de tabelas. */
 
-Calcula o Elo, embebe os resultados na pagina e junta CSS e JavaScript no mesmo ficheiro.
-Uso:
-  python build_web.py --db data/lorcana.db --out web/index.html
-"""
-from __future__ import annotations
+:root {
+  --paper: #eef1f8;
+  --surface: #ffffff;
+  --ink: #1b2245;
+  --muted: #59627f;
+  --line: #d6dbea;
+  --line-strong: #aab2cc;
+  --focus: #1f6fd1;
 
-import argparse
-import json
-from collections import defaultdict
-from datetime import date
-from pathlib import Path
+  --amber: #f2b01e;
+  --amethyst: #7b3fa0;
+  --emerald: #1f9d63;
+  --ruby: #d12e45;
+  --sapphire: #1f6fd1;
+  --steel: #8a94a3;
 
-import db
-from assets_inline import STYLE_CSS, WEB_APP_JS
-from build_site import fold, fmt_date, load_opt_out
-from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING,
-                  compute, extra_stats, rival_labels)
+  --win: #14794a;
+  --win-bg: #dff3e8;
+  --loss: #b3243a;
+  --loss-bg: #fbe3e7;
+  --draw: #8a6100;
+  --draw-bg: #fbf0d2;
 
-SHELL = """<!doctype html>
-<html lang="pt-PT">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Elo Lorcana Portugal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Public+Sans:wght@400;600&amp;display=swap">
-<style>
-__CSS__
-:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-</style>
-</head>
-<body>
-<div class="inkband" aria-hidden="true"></div>
-__DEMO__
-<header class="wrap top">
-<a class="brand" href="#/">Elo Lorcana Portugal</a>
-<nav aria-label="Principal">
-<a href="#/" data-key="ranking">Ranking</a>
-<a href="#/eventos" data-key="eventos">Eventos</a>
-<a href="#/sobre" data-key="sobre">Sobre</a>
-</nav>
-</header>
-<main class="wrap" id="app"></main>
-<footer class="wrap foot">
-<p>Projeto de fãs, sem ligação à Ravensburger nem à Disney. Disney Lorcana é marca dos respetivos titulares.
-Resultados obtidos do Ravensburger Play Hub. Atualizado em __UPDATED__.</p>
-</footer>
-<script>
-var DATA = __DATA__;
-__JS__
-</script>
-</body>
-</html>
-"""
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12162e;
+    --surface: #1b2143;
+    --ink: #e9ecfa;
+    --muted: #a3abc8;
+    --line: #2c3460;
+    --line-strong: #4a5486;
+    --focus: #6aa8ff;
+    --win: #5fd39b;
+    --win-bg: #173b2f;
+    --loss: #ff8fa0;
+    --loss-bg: #40202c;
+    --draw: #f2c85b;
+    --draw-bg: #3d3216;
+  }
+}
 
-def build(args: argparse.Namespace) -> None:
-    conn = db.connect(args.db)
-    matches = db.load_matches(conn, args.date_from, args.date_to)
-    stats, history = compute(matches)
-    if not stats:
-        raise SystemExit("Sem partidas no período indicado. Importa dados primeiro (import_matches.py).")
+:root[data-theme="dark"] {
+    --paper: #12162e;
+    --surface: #1b2143;
+    --ink: #e9ecfa;
+    --muted: #a3abc8;
+    --line: #2c3460;
+    --line-strong: #4a5486;
+    --focus: #6aa8ff;
+    --win: #5fd39b;
+    --win-bg: #173b2f;
+    --loss: #ff8fa0;
+    --loss-bg: #40202c;
+    --draw: #f2c85b;
+    --draw-bg: #3d3216;
+}
 
-    hidden = load_opt_out(args.opt_out)
-    names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM players")}
-    ev_rows = {r["id"]: dict(r) for r in conn.execute("SELECT * FROM events")}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
-    visible = [s for s in stats.values() if s.id not in hidden]
-    ranked = sorted((s for s in visible if s.games >= args.min_games),
-                    key=lambda s: (-s.rating, -s.games, fold(names.get(s.id, s.id))))
-    provisional = sorted((s for s in visible if s.games < args.min_games),
-                         key=lambda s: (-s.games, fold(names.get(s.id, s.id))))
-    rank_of = {s.id: i + 1 for i, s in enumerate(ranked)}
+html { -webkit-text-size-adjust: 100%; }
 
-    hist_by_player: dict[str, list] = defaultdict(list)
-    for h in history:
-        hist_by_player[h.player].append(h)
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.55;
+}
 
-    per_player: dict[str, list] = {}
-    for h in history:
-        opp = None if h.opponent in hidden else h.opponent
-        per_player.setdefault(h.player, []).append(
-            [h.date, h.event_id, h.round, opp, h.score, round(h.rating_after, 1), round(h.delta, 1)])
+a { color: inherit; }
+a:focus-visible, input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
 
-    def extra_of(pid: str) -> dict:
-        extra = extra_stats(hist_by_player.get(pid, []), hidden)
-        nemesis, victim = rival_labels(extra["h2h"])
-        extra["nemesis"], extra["victim"] = nemesis, victim
-        extra["low"] = round(extra["low"], 1)
-        extra["best_gain"] = round(extra["best_gain"], 1)
-        extra["worst_loss"] = round(extra["worst_loss"], 1)
-        return extra
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
-    players = [{
-        "id": s.id, "name": names.get(s.id, s.id), "rating": round(s.rating, 1),
-        "peak": round(s.peak, 1), "games": s.games, "wins": s.wins, "draws": s.draws,
-        "losses": s.losses, "rank": rank_of.get(s.id), "h": per_player.get(s.id, []),
-        "extra": extra_of(s.id),
-    } for s in ranked + provisional]
+.wrap { max-width: 60rem; margin: 0 auto; padding: 0 1.25rem; }
 
-    by_event: dict[str, list] = {}
-    for m in matches:
-        by_event.setdefault(m.event_id, []).append(m)
-    events = {}
-    for eid, ms in by_event.items():
-        ev = ev_rows[eid]
-        events[eid] = {
-            "id": eid, "name": ev.get("name"), "date": ev["date"], "store": ev.get("store"),
-            "city": ev.get("city"), "players": len({p for m in ms for p in (m.player_a, m.player_b)}),
-            "matches": len(ms),
-        }
+.inkband {
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--amber) 0 16.66%, var(--amethyst) 0 33.33%, var(--emerald) 0 50%,
+    var(--ruby) 0 66.66%, var(--sapphire) 0 83.33%, var(--steel) 0 100%);
+}
 
-    data = {
-        "meta": {"since": fmt_date(args.date_from), "matches": len(matches), "events": len(events),
-                 "minGames": args.min_games, "ranked": len(ranked), "contact": args.contact},
-        "consts": {"start": int(START_RATING), "k1": int(K_PROVISIONAL), "k2": int(K_STABLE),
-                   "prov": PROVISIONAL_GAMES},
-        "players": players,
-        "events": events,
-    }
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    demo = ('<p class="demo">Dados de exemplo: jogadores e resultados inventados para testar o site.</p>'
-            if args.demo else "")
-    page = (SHELL
-            .replace("__CSS__", STYLE_CSS)
-            .replace("__JS__", WEB_APP_JS)
-            .replace("__DEMO__", demo)
-            .replace("__UPDATED__", date.today().strftime("%d/%m/%Y"))
-            .replace("__DATA__", payload))
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(page, encoding="utf-8")
-    print(f"Página gerada em {out} ({out.stat().st_size // 1024} kB): "
-          f"{len(players)} jogadores, {len(matches)} partidas, {len(events)} eventos.")
+.demo {
+  max-width: none; margin: 0; padding: .5rem 1.25rem; text-align: center;
+  background: var(--draw-bg); color: var(--draw); font-size: .9rem; font-weight: 600;
+}
 
+/* cabecalho */
+.top {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  justify-content: space-between; gap: .5rem 1.5rem;
+  padding-top: 1.1rem; padding-bottom: 1.1rem;
+}
+.brand {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.15rem;
+  letter-spacing: -.01em; text-decoration: none;
+}
+.top nav { display: flex; gap: 1.25rem; }
+.top nav a { text-decoration: none; color: var(--muted); padding: .2rem 0; border-bottom: 2px solid transparent; }
+.top nav a:hover { color: var(--ink); }
+.top nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--db", default="data/lorcana.db")
-    ap.add_argument("--out", default="web/index.html")
-    ap.add_argument("--from", dest="date_from", default="2025-09-05")
-    ap.add_argument("--to", dest="date_to", default=None)
-    ap.add_argument("--min-games", type=int, default=5)
-    ap.add_argument("--opt-out", default="opt_out.txt")
-    ap.add_argument("--contact", default="")
-    ap.add_argument("--demo", action="store_true")
-    build(ap.parse_args())
+/* tipografia */
+h1, h2 { font-family: var(--font-display); letter-spacing: -.02em; line-height: 1.12; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.9rem); font-weight: 700; margin: 1.5rem 0 .6rem; }
+h2 { font-size: 1.35rem; font-weight: 700; margin: 2.2rem 0 .7rem; }
+p { max-width: 42rem; margin: 0 0 1rem; }
+.lead { color: var(--muted); font-size: 1.05rem; }
+.crumb { margin: 1.2rem 0 0; font-size: .95rem; }
+.crumb a { color: var(--muted); }
+.crumb + h1 { margin-top: .4rem; }
 
+/* pesquisa */
+.search { margin: 1.4rem 0 1rem; }
+.search input {
+  width: 100%; max-width: 28rem; padding: .8rem 1rem;
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: 8px;
+}
+.search input::placeholder { color: var(--muted); }
 
-if __name__ == "__main__":
-    main()
+/* tabelas */
+.tablewrap {
+  position: relative; overflow-x: auto; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px;
+}
+.tablewrap.scrolls::after {
+  content: ""; position: sticky; float: right; top: 0; right: 0;
+  width: 1.5rem; height: 100%; margin-left: -1.5rem; pointer-events: none;
+  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--ink) 12%, transparent));
+}
+table { width: 100%; min-width: max-content; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: .7rem .9rem; text-align: left; vertical-align: middle; white-space: nowrap; }
+th { font-size: .85rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line-strong); }
+td { border-bottom: 1px solid var(--line); }
+tbody tr:last-child td { border-bottom: 0; }
+.num { text-align: right; }
+.matches td:nth-child(2), .matches th:nth-child(2) {
+  max-width: 15rem; overflow: hidden; text-overflow: ellipsis;
+}
+.ranking tbody tr:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.ranking td:nth-child(2) a { font-weight: 600; text-decoration: none; }
+.ranking td:nth-child(2) a:hover { text-decoration: underline; }
+.elo { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
+.prov td { color: var(--muted); }
+.prov .elo { font-weight: 500; }
+.delta { color: var(--muted); font-size: .9rem; }
+.empty { margin: 1rem 0; color: var(--muted); }
+
+.chip {
+  display: inline-block; min-width: 1.6rem; padding: .05rem .3rem;
+  text-align: center; border-radius: 4px; font-size: .8rem; font-weight: 600; margin-right: .2rem;
+}
+.chip-w { background: var(--win-bg); color: var(--win); }
+.chip-l { background: var(--loss-bg); color: var(--loss); }
+.chip-d { background: var(--draw-bg); color: var(--draw); }
+
+/* pagina de jogador */
+.hero { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 2rem; margin: 1rem 0 0; }
+.bignum {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(3.4rem, 12vw, 5.5rem); line-height: 1; letter-spacing: -.03em;
+}
+.hero-text { margin: 0; color: var(--muted); }
+
+.stat-grid {
+  display: flex; flex-wrap: wrap; margin: 1.6rem 0;
+  border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+  border-radius: 8px; overflow: hidden;
+}
+.stat-tile {
+  display: flex; flex-direction: column; gap: .2rem; flex: 1 1 9.5rem; min-width: 9.5rem;
+  padding: .8rem .9rem; background: var(--surface);
+  border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.stat-label { font-size: .78rem; color: var(--muted); }
+.stat-value { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
+.stat-sub { font-size: .78rem; color: var(--muted); }
+
+.tag {
+  display: inline-block; padding: .05rem .4rem; border-radius: 999px;
+  font-size: .72rem; font-weight: 600; vertical-align: middle;
+}
+.tag-l { background: var(--loss-bg); color: var(--loss); }
+.tag-w { background: var(--win-bg); color: var(--win); }
+
+.chart { width: 100%; max-width: 40rem; height: auto; display: block; }
+.chart-base { stroke: var(--line-strong); stroke-dasharray: 4 4; }
+.chart-line { fill: none; stroke: var(--sapphire); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.chart-dot { fill: var(--sapphire); }
+.chart-tick { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
+
+/* rodape */
+.foot { padding-top: 2.5rem; padding-bottom: 3rem; color: var(--muted); font-size: .9rem; }
+
+/* ecras estreitos: esconde colunas secundarias */
+@media (max-width: 40rem) {
+  .wide { display: none; }
+  th, td { padding: .65rem .6rem; }
+}
