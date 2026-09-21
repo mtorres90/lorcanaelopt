@@ -43,6 +43,7 @@ __DEMO__
 <div class="top-right">
 <nav aria-label="Principal" data-i18n-aria="navMain">
 <a href="#/" data-key="ranking" data-i18n="navRanking">Ranking</a>
+<a href="#/international" data-key="international" data-i18n="navIntl">Internacional</a>
 <a href="#/events" data-key="events" data-i18n="navEvents">Eventos</a>
 <a href="#/about" data-key="about" data-i18n="navAbout">Sobre</a>
 </nav>
@@ -80,6 +81,21 @@ __JS__
 """
 
 
+def load_intl(path: str | None) -> tuple[dict[str, dict], str | None]:
+    """Elo internacional (elorcana) por id do Play Hub. Ficheiro opcional, criado por
+    fetch_elorcana.py; sem ele o site funciona na mesma, so sem Elo internacional."""
+    if not path or not Path(path).exists():
+        return {}, None
+    try:
+        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}, None
+    out = {pid: {"id": e["id"], "elo": e["elo"], "rank": e.get("rank"), "peak": e.get("peak")}
+           for pid, e in raw.get("players", {}).items()
+           if e.get("status") == "matched" and e.get("id") and e.get("elo") is not None}
+    return out, raw.get("updated")
+
+
 def build(args: argparse.Namespace) -> None:
     conn = db.connect(args.db)
     matches = db.load_matches(conn, args.date_from, args.date_to)
@@ -88,6 +104,7 @@ def build(args: argparse.Namespace) -> None:
         raise SystemExit("Sem partidas no período indicado. Importa dados primeiro (import_matches.py).")
 
     hidden = load_opt_out(args.opt_out)
+    intl, intl_updated = load_intl(args.elorcana)
     names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM players")}
     real_names = {r["id"]: r["real_name"] for r in conn.execute("SELECT id, real_name FROM players")
                   if r["real_name"]}
@@ -130,6 +147,7 @@ def build(args: argparse.Namespace) -> None:
         "peak": round(s.peak, 1), "games": s.games, "wins": s.wins, "draws": s.draws,
         "losses": s.losses, "rank": rank_of.get(s.id), "h": per_player.get(s.id, []),
         "extra": extra_of(s.id),
+        **({"intl": intl[s.id]} if s.id in intl else {}),
     } for s in ranked + provisional]
 
     by_event: dict[str, list] = {}
@@ -146,7 +164,9 @@ def build(args: argparse.Namespace) -> None:
 
     data = {
         "meta": {"since": fmt_date(args.date_from), "matches": len(matches), "events": len(events),
-                 "minGames": args.min_games, "ranked": len(ranked), "contact": args.contact},
+                 "minGames": args.min_games, "ranked": len(ranked), "contact": args.contact,
+                 "intl": sum(1 for p in players if "intl" in p),
+                 "intlUpdated": fmt_date(intl_updated) if intl_updated else None},
         "consts": {"start": int(START_RATING), "k1": int(K_PROVISIONAL), "k2": int(K_STABLE),
                    "prov": PROVISIONAL_GAMES},
         "players": players,
@@ -176,6 +196,8 @@ def main() -> None:
     ap.add_argument("--to", dest="date_to", default=None)
     ap.add_argument("--min-games", type=int, default=5)
     ap.add_argument("--opt-out", default="opt_out.txt")
+    ap.add_argument("--elorcana", default="raw/elorcana.json",
+                    help="Elo internacional obtido por fetch_elorcana.py (opcional)")
     ap.add_argument("--contact", default="")
     ap.add_argument("--demo", action="store_true")
     build(ap.parse_args())

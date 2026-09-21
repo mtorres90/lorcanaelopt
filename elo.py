@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
 
-START_RATING = 1000.0
+START_RATING = 1500.0
 PROVISIONAL_GAMES = 10
 K_PROVISIONAL = 40.0
 K_STABLE = 24.0

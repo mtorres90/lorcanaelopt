@@ -1,0 +1,4 @@
+# Correcoes ao Elo internacional (elorcana.com). Uma por linha:
+#   <id do jogador no Play Hub> <uuid do perfil no elorcana>   -> forca este perfil (tem de ser um perfil RPH)
+#   <id do jogador no Play Hub> none                           -> nunca mostrar Elo internacional
+# O uuid esta no fim do endereco do perfil: https://elorcana.com/profile/<uuid>

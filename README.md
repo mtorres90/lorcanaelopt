@@ -33,11 +33,22 @@ The Play Hub blocks requests from browsers on other sites (CORS), so collection 
 |---|---|
 | `ingest_playhub.py` | Collects Portuguese events, rounds and matches from the Play Hub and writes the CSV. `--probe` shows the shape of the data |
 | `import_matches.py` | Imports the CSV into SQLite (idempotent, ignores byes, filters dates) |
-| `elo.py` | Elo engine: start at 1000, K=40 for the first 10 matches and K=24 after that, draw = 0.5, rounds calculated with the rating from before the round |
+| `elo.py` | Elo engine: start at 1500, K=40 for the first 10 matches and K=24 after that, draw = 0.5, rounds calculated with the rating from before the round |
+| `fetch_elorcana.py` | Fetches each player's international Elo from elorcana.com (Play Hub profiles only, matched by nickname) and caches it in `raw/elorcana.json` |
 | `build_web.py` | Generates the single page (`index.html`) with ranking, players, events and about |
 | `build_site.py` | Alternative: multi-page site |
 | `make_sample_data.py` | Made-up data for trying things out |
 | `.github/workflows/` | `probe.yml` (discovery) and `update.yml` (nightly update and publishing) |
+
+## International Elo (elorcana.com)
+
+Each player page shows the player's international Elo from [elorcana.com](https://elorcana.com), linked to their profile there, and the **International** page ranks the Portuguese players by it.
+
+- Only **Ravensburger Play Hub** profiles are used. elorcana also has Melee profiles, and the same person often has one of each, so anything from Melee is ignored.
+- elorcana has its own player ids, so players are matched by their Play Hub name. If more than one Play Hub profile has exactly that name the player is skipped, not guessed.
+- elorcana only tracks official events and community events with over 512 players, so many local players will not have an international Elo.
+- To fix a wrong or missing match, add a line to `elorcana_overrides.txt`: `<play hub id> <elorcana profile uuid>` to force a profile, or `<play hub id> none` to hide it.
+- The nightly workflow runs `fetch_elorcana.py` before building the page. If elorcana is unreachable the site is still published, with the previous values.
 
 ## CSV format between the collector and the importer
 

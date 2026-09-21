@@ -31,7 +31,7 @@ def main(path: str) -> None:
         players.append({
             "id": f"demo-{i + 1:03d}",
             "name": f"{first} {random.choice(INITIALS)}.",
-            "skill": 1000 + random.gauss(0, 140),
+            "skill": 1500 + random.gauss(0, 140),
             "city": random.choice(["Lisboa", "Lisboa", "Porto", "Coimbra"]),
         })
 

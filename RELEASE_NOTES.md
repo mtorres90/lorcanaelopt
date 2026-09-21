@@ -1,5 +1,29 @@
 # Release notes
 
+## 2026-09-21 (second release): International Elo
+
+### Changed
+
+- **Everyone now starts at 1500** instead of 1000, the same baseline as elorcana.com, so the two ratings are on
+  the same scale. Every rating shifts up by exactly 500 and the ranking order does not change.
+  (This supersedes the "Elo calculations unchanged" note on 2026-09-21 below.)
+
+### New
+
+- **International Elo on player pages.** Where a player has one, their page shows the Elo from elorcana.com,
+  as a number linked to their elorcana profile.
+- **International page.** A new menu item ranks the Portuguese players by international Elo, with their elorcana
+  rank and their Portugal Elo alongside.
+- Only Ravensburger Play Hub profiles are used; Melee profiles (which often duplicate the same person) are ignored.
+  elorcana only tracks official events and community events over 512 players, so many local players have none.
+  Players are matched by Play Hub name and skipped if that name is shared by several Play Hub players.
+  `elorcana_overrides.txt` fixes or hides individual matches.
+- The nightly workflow gets a new step, `fetch_elorcana.py`. If elorcana is unreachable the site still publishes.
+
+### Fixed
+
+- The header menu wraps on narrow phones instead of overflowing, now that it has five items.
+
 ## 2026-09-21
 
 Site-only changes. Elo calculations, the data pipeline and the nightly workflow are unchanged.

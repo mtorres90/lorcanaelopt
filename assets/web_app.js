@@ -13,7 +13,7 @@
   // Todo o texto visivel vive aqui. {nome} e substituido por t(chave, {nome: valor}).
   var T = {
     en: {
-      navMain: 'Main', navRanking: 'Ranking', navEvents: 'Events', navAbout: 'About',
+      navMain: 'Main', navRanking: 'Ranking', navIntl: 'International', navEvents: 'Events', navAbout: 'About',
       demo: 'Sample data: players and results are made up to test the site.',
       footer: 'Fan project, not affiliated with Ravensburger or Disney. Disney Lorcana is a trademark of its respective owners. Results sourced from the Ravensburger Play Hub. Updated on {date}.',
       win: 'Win', loss: 'Loss', draw: 'Draw', w: 'W', d: 'D', l: 'L', wdl: 'W\u2013D\u2013L',
@@ -42,6 +42,12 @@
       standingRanked: '{ord} out of {ranked} ranked players.',
       standingUnranked: 'Not yet ranked: needs {min} matches, has {games}.',
       currentElo: 'Current Elo',
+      intlElo: 'International Elo', intlOn: 'See {name} on elorcana.com',
+      intlTitle: 'International Elo of Portuguese players',
+      intlLead: '{n} Portuguese players with an international Elo on elorcana.com, ranked by it. Data updated on {date}.',
+      intlNote: 'International Elo comes from elorcana.com and only uses Ravensburger Play Hub results (Melee is left out). elorcana only tracks official events and community events with over 512 players, so players who have never played one are not listed. Players are matched by their Play Hub name; when several Play Hub players share a name we skip them rather than guess.',
+      intlEmpty: 'No international Elo data yet.',
+      colIntl: 'International Elo', colWorldRank: 'elorcana rank', colPtElo: 'Portugal Elo',
       heroText: 'Peak of {peak}. {w} wins, {d} draws and {l} losses ({pct}% win rate).',
       secProgression: 'Elo progression', secH2h: 'Head-to-head', secEvents: 'Events', secMatches: 'Matches',
       chartLabel: 'Elo progression of {name}: from {from} to {to}',
@@ -67,6 +73,8 @@
       aboutHow3: 'Bigger events also count for more: matches at an event with 17\u201332 players move rating 1.25\u00d7 as much as usual, and events with 33 or more players move it 1.5\u00d7. Smaller events use the normal rate.',
       aboutRankH: 'Who gets a rank',
       aboutRank: 'Players with at least {min} matches. Others appear at the bottom of the table, unranked.',
+      aboutIntlH: 'International Elo',
+      aboutIntl: 'Where available, each player page also shows the international Elo from {site}, which rates players worldwide using official Play Hub events. It is a separate rating from the Portugal Elo on this site and is shown for reference only.',
       aboutPrivH: 'Privacy',
       aboutPriv: 'We only show the name that the Play Hub makes publicly available. If you\u2019d rather not appear, contact {contact} and your profile will stop being shown. Your matches still count toward your opponents\u2019 Elo, but your name is replaced with \u201c{anon}\u201d.',
       contactUnset: 'the site contact (to be set)',
@@ -75,7 +83,7 @@
       notFound: 'This player doesn\u2019t exist or has been removed.', backToRanking: 'Back to ranking'
     },
     pt: {
-      navMain: 'Principal', navRanking: 'Ranking', navEvents: 'Eventos', navAbout: 'Sobre',
+      navMain: 'Principal', navRanking: 'Ranking', navIntl: 'Internacional', navEvents: 'Eventos', navAbout: 'Sobre',
       demo: 'Dados de exemplo: os jogadores e os resultados s\u00e3o inventados para testar o site.',
       footer: 'Projeto de f\u00e3s, sem afilia\u00e7\u00e3o \u00e0 Ravensburger ou \u00e0 Disney. Disney Lorcana \u00e9 uma marca registada dos respetivos propriet\u00e1rios. Resultados obtidos do Ravensburger Play Hub. Atualizado em {date}.',
       win: 'Vit\u00f3ria', loss: 'Derrota', draw: 'Empate', w: 'V', d: 'E', l: 'D', wdl: 'V\u2013E\u2013D',
@@ -93,6 +101,12 @@
       standingRanked: '{ord} de {ranked} jogadores classificados.',
       standingUnranked: 'Ainda sem classifica\u00e7\u00e3o: precisa de {min} partidas, tem {games}.',
       currentElo: 'Elo atual',
+      intlElo: 'Elo internacional', intlOn: 'Ver {name} no elorcana.com',
+      intlTitle: 'Elo internacional dos jogadores portugueses',
+      intlLead: '{n} jogadores portugueses com Elo internacional no elorcana.com, ordenados por ele. Dados atualizados em {date}.',
+      intlNote: 'O Elo internacional vem do elorcana.com e usa apenas resultados do Ravensburger Play Hub (o Melee fica de fora). O elorcana só regista eventos oficiais e eventos de comunidade com mais de 512 jogadores, por isso quem nunca jogou um não aparece. Os jogadores são associados pelo nome no Play Hub; quando vários jogadores do Play Hub têm o mesmo nome, ignoramos em vez de adivinhar.',
+      intlEmpty: 'Ainda não há dados de Elo internacional.',
+      colIntl: 'Elo internacional', colWorldRank: 'Pos. no elorcana', colPtElo: 'Elo Portugal',
       heroText: 'M\u00e1ximo de {peak}. {w} vit\u00f3rias, {d} empates e {l} derrotas ({pct}% de vit\u00f3rias).',
       secProgression: 'Evolu\u00e7\u00e3o do Elo', secH2h: 'Frente a frente', secEvents: 'Eventos', secMatches: 'Partidas',
       chartLabel: 'Evolu\u00e7\u00e3o do Elo de {name}: de {from} para {to}',
@@ -116,6 +130,8 @@
       aboutHow3: 'Os eventos maiores tamb\u00e9m valem mais: as partidas num evento com 17\u201332 jogadores movem o Elo 1,25\u00d7 mais do que o normal, e os eventos com 33 ou mais jogadores movem-no 1,5\u00d7. Os eventos mais pequenos usam a taxa normal.',
       aboutRankH: 'Quem tem classifica\u00e7\u00e3o',
       aboutRank: 'Jogadores com pelo menos {min} partidas. Os restantes aparecem no fim da tabela, sem classifica\u00e7\u00e3o.',
+      aboutIntlH: 'Elo internacional',
+      aboutIntl: 'Quando existe, a página de cada jogador mostra também o Elo internacional do {site}, que classifica jogadores de todo o mundo com eventos oficiais do Play Hub. É uma classificação à parte do Elo Portugal deste site e serve apenas de referência.',
       aboutPrivH: 'Privacidade',
       aboutPriv: 'S\u00f3 mostramos o nome que o Play Hub disponibiliza publicamente. Se preferires n\u00e3o aparecer, contacta {contact} e o teu perfil deixa de ser mostrado. As tuas partidas continuam a contar para o Elo dos teus advers\u00e1rios, mas o teu nome \u00e9 substitu\u00eddo por \u201c{anon}\u201d.',
       contactUnset: 'quem gere o site (contacto por definir)',
@@ -183,6 +199,11 @@
     return '<span class="chip chip-d" title="' + t('draw') + '">' + t('d') + '</span>';
   }
   function link(id) { return '#/player/' + encodeURIComponent(id); }
+  function intlUrl(intl) { return 'https://elorcana.com/profile/' + encodeURIComponent(intl.id); }
+  function intlLink(p) {
+    return '<a href="' + intlUrl(p.intl) + '" target="_blank" rel="noopener noreferrer" title="' +
+      esc(t('intlOn', { name: p.name })) + '">' + rnd(p.intl.elo) + '</a>';
+  }
   function eventUrl(id) { return 'https://tcg.ravensburgerplay.com/events/' + encodeURIComponent(id); }
   function eventLink(id, name) {
     return '<a href="' + eventUrl(id) + '" target="_blank" rel="noopener noreferrer" title="' +
@@ -540,7 +561,8 @@
     return '<p class="crumb"><a href="#/">' + t('navRanking') + '</a></p><h1>' + esc(p.name) + '</h1>' + realNameLine +
       '<div class="hero"><p class="bignum" aria-label="' + esc(t('currentElo')) + '">' + rnd(p.rating) + '</p>' +
       '<p class="hero-text">' + standing + '<br>' + t('heroText', { peak: rnd(p.peak), w: p.wins, d: p.draws,
-        l: p.losses, pct: pct }) + '</p></div>' +
+        l: p.losses, pct: pct }) +
+        (p.intl ? '<br>' + t('intlElo') + ': <strong>' + intlLink(p) + '</strong>' : '') + '</p></div>' +
       '<h2>' + t('secProgression') + '</h2>' + chart(p.name, ratings, dates, info) +
       statGrid(p) +
       h2hSection(p) +
@@ -571,6 +593,29 @@
       rows, t('eventsTitle'));
   }
 
+  // ---------- international ----------
+  function intlView() {
+    var list = D.players.filter(function (p) { return p.intl; })
+      .sort(function (a, b) { return b.intl.elo - a.intl.elo || a.name.localeCompare(b.name); });
+    var head = '<h1>' + t('intlTitle') + '</h1>';
+    if (!list.length) return head + '<p class="lead">' + t('intlEmpty') + '</p>';
+    var rows = list.map(function (p, i) {
+      return '<tr data-name="' + esc(fold(p.name)) + '"><td class="num">' + (i + 1) + '</td>' +
+        '<td class="txt"><a href="' + link(p.id) + '">' + esc(p.name) + '</a></td>' +
+        '<td class="num elo">' + intlLink(p) + '</td>' +
+        '<td class="num wide">' + (p.intl.rank ? '#' + p.intl.rank : '–') + '</td>' +
+        '<td class="num">' + rnd(p.rating) + '</td></tr>';
+    });
+    return head + '<p class="lead">' + t('intlLead', { n: list.length, date: esc(D.meta.intlUpdated || '') }) + '</p>' +
+      pagedTable('ranking',
+        '<th class="num" scope="col">' + t('colRank') + '</th><th scope="col">' + t('colPlayer') + '</th>' +
+        '<th class="num" scope="col">' + t('colIntl') + '</th>' +
+        '<th class="num wide" scope="col">' + t('colWorldRank') + '</th>' +
+        '<th class="num" scope="col">' + t('colPtElo') + '</th>',
+        rows, t('navIntl'), t('intlTitle')) +
+      '<p class="note">' + t('intlNote') + '</p>';
+  }
+
   // ---------- about ----------
   function aboutView() {
     var c = D.consts, m = D.meta;
@@ -583,6 +628,8 @@
       '<p>' + t('aboutHow2', { prov: c.prov, k1: c.k1, k2: c.k2 }) + '</p>' +
       '<p>' + t('aboutHow3') + '</p>' +
       '<h2>' + t('aboutRankH') + '</h2><p>' + t('aboutRank', { min: m.minGames }) + '</p>' +
+      (D.meta.intl ? '<h2>' + t('aboutIntlH') + '</h2><p>' + t('aboutIntl', {
+        site: '<a href="https://elorcana.com" target="_blank" rel="noopener noreferrer">elorcana.com</a>' }) + '</p>' : '') +
       '<h2>' + t('aboutPrivH') + '</h2><p>' + t('aboutPriv', { contact: contact, anon: t('anon') }) + '</p></div>';
   }
 
@@ -606,6 +653,8 @@
       title = byId[id] ? byId[id].name : t('notFoundShort');
     } else if (parts[0] === 'events') {
       html = eventsView(); key = 'events'; title = t('navEvents');
+    } else if (parts[0] === 'international') {
+      html = intlView(); key = 'international'; title = t('navIntl');
     } else if (parts[0] === 'about') {
       html = aboutView(); key = 'about'; title = t('navAbout');
     } else {

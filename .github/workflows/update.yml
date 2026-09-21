@@ -33,9 +33,14 @@ jobs:
           restore-keys: playhub-raw-
       - name: Recolher resultados do Play Hub
         run: python ingest_playhub.py --out data/matches.csv
-      - name: Calcular Elo e gerar a página
+      - name: Importar partidas
+        run: python import_matches.py data/matches.csv --db data/lorcana.db
+      - name: Elo internacional (elorcana.com)
+        # Serviço de terceiros: se falhar, o site publica na mesma, sem Elo internacional novo.
+        continue-on-error: true
+        run: python fetch_elorcana.py --db data/lorcana.db --out raw/elorcana.json
+      - name: Gerar a página
         run: |
-          python import_matches.py data/matches.csv --db data/lorcana.db
           python build_web.py --db data/lorcana.db --out public/index.html --contact "${{ vars.CONTACT_EMAIL }}"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
