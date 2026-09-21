@@ -277,6 +277,8 @@
       '<p>In the first ' + c.prov + ' matches, swings are bigger (K = ' + c.k1 + '), so Elo reaches the right ' +
       'level quickly. After that it switches to K = ' + c.k2 + '. Matches within the same round are calculated ' +
       'using each player\u2019s Elo from before that round. Byes don\u2019t count.</p>' +
+      '<p>Bigger events also count for more: matches at an event with 17\u201332 players move rating 1.25\u00d7 as ' +
+      'much as usual, and events with 33 or more players move it 1.5\u00d7. Smaller events use the normal rate.</p>' +
       '<h2>Who gets a rank</h2><p>Players with at least ' + m.minGames + ' matches. Others appear at the bottom ' +
       'of the table, unranked.</p>' +
       '<h2>Privacy</h2><p>We only show the name that the Play Hub makes publicly available. If you\u2019d rather not ' +
