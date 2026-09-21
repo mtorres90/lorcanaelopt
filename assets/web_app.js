@@ -105,6 +105,76 @@
       '<circle class="chart-dot" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(ratings[n - 1]).toFixed(1) + '" r="4"/></svg>';
   }
 
+  function statTile(label, value, sub) {
+    return '<div class="stat-tile"><span class="stat-label">' + label + '</span>' +
+      '<span class="stat-value">' + value + '</span>' +
+      (sub ? '<span class="stat-sub">' + sub + '</span>' : '') + '</div>';
+  }
+
+  function statGrid(p) {
+    var e = p.extra || {};
+    var favPct = e.fav_games ? Math.round((e.fav_wins / e.fav_games) * 100) + ' %' : '\u2013';
+    var dogPct = e.dog_games ? Math.round((e.dog_wins / e.dog_games) * 100) + ' %' : '\u2013';
+    return '<div class="stat-grid">' +
+      statTile('Pico', rnd(p.peak)) +
+      statTile('M\u00ednimo', rnd(e.low)) +
+      statTile('Eventos', e.events) +
+      statTile('Melhor s\u00e9rie de vit\u00f3rias', e.best_win_streak) +
+      statTile('Pior s\u00e9rie de derrotas', e.best_loss_streak) +
+      statTile('Maior subida numa partida', delta(e.best_gain)) +
+      statTile('Maior queda numa partida', delta(e.worst_loss)) +
+      statTile('Como favorito', favPct, e.fav_games + ' jogos') +
+      statTile('Como azar\u00e3o', dogPct, e.dog_games + ' jogos') +
+      '</div>';
+  }
+
+  function h2hSection(p) {
+    var list = (p.extra && p.extra.h2h) || [];
+    if (!list.length) return '';
+    var rows = list.map(function (o) {
+      var opp = byId[o.id];
+      var name = opp ? opp.name : 'Jogador an\u00f3nimo';
+      var cell = opp ? '<a href="' + link(o.id) + '">' + esc(name) + '</a>' : esc(name);
+      var pct = Math.round(((o.wins + 0.5 * o.draws) / o.games) * 100);
+      var tag = '';
+      if (o.id === p.extra.nemesis) tag = ' <span class="tag tag-l">maior rival</span>';
+      else if (o.id === p.extra.victim) tag = ' <span class="tag tag-w">v\u00edtima favorita</span>';
+      return '<tr><td>' + cell + tag + '</td><td class="num">' + o.games + '</td>' +
+        '<td class="num wide">' + o.wins + '\u2013' + o.draws + '\u2013' + o.losses + '</td>' +
+        '<td class="num">' + pct + ' %</td></tr>';
+    }).join('');
+    return '<h2>Confrontos diretos</h2><div class="tablewrap"><table class="matches">' +
+      '<thead><tr><th scope="col">Advers\u00e1rio</th><th class="num" scope="col">Jogos</th>' +
+      '<th class="num wide" scope="col">V\u2013E\u2013D</th><th class="num" scope="col">% vit\u00f3rias</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function eventsSection(p) {
+    var byEv = {}, order = [];
+    p.h.forEach(function (h) {
+      var eid = h[1];
+      if (!byEv[eid]) {
+        byEv[eid] = { date: h[0], w: 0, d: 0, l: 0, rounds: 0, start: h[5] - h[6], end: h[5] };
+        order.push(eid);
+      }
+      var e = byEv[eid];
+      e.rounds++;
+      e.end = h[5];
+      if (h[4] === 1) e.w++; else if (h[4] === 0) e.l++; else e.d++;
+    });
+    if (!order.length) return '';
+    var rows = order.slice().reverse().map(function (eid) {
+      var e = byEv[eid], ev = D.events[eid] || {}, evName = ev.name || eid;
+      return '<tr><td>' + fmtDate(e.date) + '</td><td title="' + esc(evName) + '">' + esc(evName) + '</td>' +
+        '<td class="num">' + e.rounds + '</td><td class="num wide">' + e.w + '\u2013' + e.d + '\u2013' + e.l + '</td>' +
+        '<td class="num">' + delta(e.end - e.start) + '</td></tr>';
+    }).join('');
+    return '<h2>Eventos</h2><div class="tablewrap"><table class="matches">' +
+      '<thead><tr><th scope="col">Data</th><th scope="col">Evento</th><th class="num" scope="col">Rondas</th>' +
+      '<th class="num wide" scope="col">V\u2013E\u2013D</th><th class="num" scope="col">Varia\u00e7\u00e3o</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
   function playerView(id) {
     var p = byId[id];
     if (!p) return notFound();
@@ -126,7 +196,10 @@
       '<div class="hero"><p class="bignum" aria-label="Elo atual">' + rnd(p.rating) + '</p>' +
       '<p class="hero-text">' + standing + '<br>M\u00e1ximo de ' + rnd(p.peak) + '. ' + p.wins + ' vit\u00f3rias, ' +
       p.draws + ' empates e ' + p.losses + ' derrotas (' + pct + ' % de aproveitamento).</p></div>' +
+      statGrid(p) +
       '<h2>Evolu\u00e7\u00e3o do Elo</h2>' + chart(p.name, ratings) +
+      h2hSection(p) +
+      eventsSection(p) +
       '<h2>Partidas</h2><div class="tablewrap"><table class="matches"><thead><tr><th scope="col">Data</th>' +
       '<th scope="col">Evento</th><th class="num" scope="col">Ronda</th><th scope="col">Advers\u00e1rio</th>' +
       '<th scope="col">Resultado</th><th class="num" scope="col">Elo depois</th></tr></thead><tbody>' +
