@@ -92,6 +92,83 @@ def _apply(stats: PlayerStats, new_rating: float, score: float, date: str) -> No
     stats.last_date = date
 
 
+def extra_stats(hist: list[HistoryRow], hidden: set[str]) -> dict:
+    """Estatisticas extra por jogador, para a pagina de jogador: sequencias,
+    extremos, desempenho como favorito/azarao e confrontos diretos.
+    `hist` e o historico do jogador (HistoryRow), em ordem cronologica.
+    `hidden` sao os ids de jogadores ocultos (opt-out): as suas partidas
+    contam para os totais, mas nao aparecem nos confrontos diretos."""
+    events = len({h.event_id for h in hist})
+    ratings = [START_RATING] + [h.rating_after for h in hist]
+    low = min(ratings)
+    best_gain = max((h.delta for h in hist), default=0.0)
+    worst_loss = min((h.delta for h in hist), default=0.0)
+
+    best_win_streak = cur_win = 0
+    best_loss_streak = cur_loss = 0
+    for h in hist:
+        if h.score == 1.0:
+            cur_win += 1
+            cur_loss = 0
+        elif h.score == 0.0:
+            cur_loss += 1
+            cur_win = 0
+        else:
+            cur_win = cur_loss = 0
+        best_win_streak = max(best_win_streak, cur_win)
+        best_loss_streak = max(best_loss_streak, cur_loss)
+
+    fav_games = fav_wins = dog_games = dog_wins = 0.0
+    h2h: dict[str, dict] = {}
+    for h in hist:
+        if h.rating_before >= h.opponent_rating:
+            fav_games += 1
+            fav_wins += h.score
+        else:
+            dog_games += 1
+            dog_wins += h.score
+        if h.opponent not in hidden:
+            rec = h2h.setdefault(h.opponent, {"id": h.opponent, "games": 0, "wins": 0, "draws": 0, "losses": 0})
+            rec["games"] += 1
+            if h.score == 1.0:
+                rec["wins"] += 1
+            elif h.score == 0.0:
+                rec["losses"] += 1
+            else:
+                rec["draws"] += 1
+
+    top_h2h = sorted(h2h.values(), key=lambda r: (-r["games"], r["id"]))[:8]
+
+    return {
+        "events": events,
+        "low": low,
+        "best_gain": best_gain,
+        "worst_loss": worst_loss,
+        "best_win_streak": best_win_streak,
+        "best_loss_streak": best_loss_streak,
+        "fav_games": int(fav_games), "fav_wins": fav_wins,
+        "dog_games": int(dog_games), "dog_wins": dog_wins,
+        "h2h": top_h2h,
+    }
+
+
+def rival_labels(h2h: list[dict], min_games: int = 3) -> tuple[str | None, str | None]:
+    """Escolhe o maior rival (pior taxa de vitoria) e a vitima favorita (melhor
+    taxa de vitoria) entre os confrontos com pelo menos `min_games` partidas."""
+    qualifying = [r for r in h2h if r["games"] >= min_games]
+    if not qualifying:
+        return None, None
+
+    def rate(r: dict) -> float:
+        return (r["wins"] + 0.5 * r["draws"]) / r["games"]
+
+    nemesis = min(qualifying, key=rate)
+    victim = max(qualifying, key=rate)
+    nemesis_id = nemesis["id"] if rate(nemesis) < 0.5 else None
+    victim_id = victim["id"] if rate(victim) > 0.5 and victim["id"] != nemesis_id else None
+    return nemesis_id, victim_id
+
+
 def compute(matches) -> tuple[dict[str, PlayerStats], list[HistoryRow]]:
     """Devolve (estatisticas por jogador, historico por partida)."""
     stats: dict[str, PlayerStats] = {}
