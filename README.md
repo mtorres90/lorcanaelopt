@@ -1,51 +1,53 @@
 # Elo Lorcana Portugal
 
-Ranking Elo de jogadores de Disney Lorcana em Portugal, inspirado no EloShowdown (Riftbound).
+Elo ranking of Disney Lorcana players in Portugal, inspired by EloShowdown (Riftbound).
 
-## Âmbito
+The site is available in Portuguese (default) and English; visitors switch with the flags in the header and the choice is remembered in their browser. See `RELEASE_NOTES.md` for what changed in each release.
 
-- Só eventos em lojas de **Portugal**.
-- Só a era **pós-rotação**: desde **2025-09-05**, data de lançamento do Set 9 (Fabled), que iniciou a rotação.
-- Só formato **Core Constructed** por omissão (muda com `--formats`). Draft, sealed e outros formatos de boosters não entram no Elo.
+## Scope
 
-## Como funciona (tudo no GitHub, sem correres nada no teu computador)
+- Only events at stores in **Portugal**.
+- Only the **post-rotation** era: from **2025-09-05**, the release date of Set 9 (Fabled), which started the rotation.
+- Only the **Core Constructed** format by default (change it with `--formats`). Draft, sealed and other booster formats do not count towards the Elo.
 
-O GitHub Actions corre todas as noites: recolhe os resultados do Ravensburger Play Hub, calcula o Elo e publica a página no GitHub Pages.
+## How it works (everything on GitHub, nothing to run on your computer)
 
-1. Cria uma conta em github.com e um repositório **público** (ex.: `lorcana-pt-elo`). O Pages gratuito exige repositório público. Os dados dos jogadores não ficam no repositório, só na página publicada.
-2. Descompacta este zip e carrega os ficheiros: **Add file → Upload files**. Confirma que a pasta `.github/workflows/` ficou lá com os dois ficheiros `.yml`. Se o teu sistema esconde pastas com ponto, cria cada ficheiro com **Add file → Create new file**, escrevendo o caminho completo (`.github/workflows/update.yml`) e colando o conteúdo.
+GitHub Actions runs every night: it collects the results from the Ravensburger Play Hub, calculates the Elo and publishes the page to GitHub Pages.
+
+1. Create an account on github.com and a **public** repository (e.g. `lorcana-pt-elo`). Free Pages requires a public repository. Player data is not stored in the repository, only in the published page.
+2. Unzip this archive and upload the files: **Add file → Upload files**. Make sure the `.github/workflows/` folder is there with the two `.yml` files. If your system hides dot-folders, create each file with **Add file → Create new file**, typing the full path (`.github/workflows/update.yml`) and pasting the contents.
 3. **Settings → Pages → Source: GitHub Actions**.
-4. **Actions → "Descobrir a API do Play Hub" → Run workflow.** Quando acabar, abre a execução, copia o texto do passo "Sondar a API" e cola-o na conversa. Serve para confirmar os caminhos e nomes de campos da API antes de publicares dados reais.
-5. Depois de ajustado: **Actions → "Atualizar ranking" → Run workflow.** O endereço da página aparece no passo "deploy".
-6. Opcional: **Settings → Secrets and variables → Actions → Variables**, cria `CONTACT_EMAIL` com o email para pedidos de remoção.
+4. **Actions → "Descobrir a API do Play Hub" (Discover the Play Hub API) → Run workflow.** When it finishes, open the run, copy the text of the "Sondar a API" (Probe the API) step and paste it into the conversation. It is used to confirm the paths and field names of the API before you publish real data.
+5. Once adjusted: **Actions → "Atualizar ranking" (Update ranking) → Run workflow.** The page address appears in the "deploy" step.
+6. Optional: **Settings → Secrets and variables → Actions → Variables**, create `CONTACT_EMAIL` with the email address for removal requests.
 
-## Estado da integração
+## Integration status
 
-Escrita a partir de fontes públicas sobre a API. Os endpoints "TV" estão confirmados; os caminhos de eventos, rondas e partidas e os nomes dos campos são os mais prováveis mas **ainda não foram testados contra a API real**. Os testes usam um servidor simulado, por isso provam a mecânica (paginação, filtros, cache, CSV) e não a forma real dos dados. O passo 4 serve para fechar isto.
+Written from public sources about the API. The "TV" endpoints are confirmed; the paths for events, rounds and matches and the field names are the most likely ones but **have not yet been tested against the real API**. The tests use a mock server, so they prove the mechanics (pagination, filters, cache, CSV) and not the real shape of the data. Step 4 exists to close this gap.
 
-O Play Hub bloqueia pedidos de browsers de outros sites (CORS), por isso a recolha corre no servidor do GitHub e a página final só mostra dados já calculados.
+The Play Hub blocks requests from browsers on other sites (CORS), so collection runs on GitHub's servers and the final page only shows data that has already been calculated.
 
-## Ficheiros
+## Files
 
-| Ficheiro | Para quê |
+| File | Purpose |
 |---|---|
-| `ingest_playhub.py` | Recolhe eventos de Portugal, rondas e partidas do Play Hub e escreve o CSV. `--probe` mostra a forma dos dados |
-| `import_matches.py` | Importa o CSV para SQLite (idempotente, ignora byes, filtra datas) |
-| `elo.py` | Motor de Elo: início 1000, K=40 nas primeiras 10 partidas e depois K=24, empate = 0,5, rondas calculadas com o rating de antes da ronda |
-| `build_web.py` | Gera a página única (`index.html`) com ranking, jogadores, eventos e sobre |
-| `build_site.py` | Alternativa: site em várias páginas |
-| `make_sample_data.py` | Dados inventados para experimentar |
-| `.github/workflows/` | `probe.yml` (descoberta) e `update.yml` (atualização noturna e publicação) |
+| `ingest_playhub.py` | Collects Portuguese events, rounds and matches from the Play Hub and writes the CSV. `--probe` shows the shape of the data |
+| `import_matches.py` | Imports the CSV into SQLite (idempotent, ignores byes, filters dates) |
+| `elo.py` | Elo engine: start at 1000, K=40 for the first 10 matches and K=24 after that, draw = 0.5, rounds calculated with the rating from before the round |
+| `build_web.py` | Generates the single page (`index.html`) with ranking, players, events and about |
+| `build_site.py` | Alternative: multi-page site |
+| `make_sample_data.py` | Made-up data for trying things out |
+| `.github/workflows/` | `probe.yml` (discovery) and `update.yml` (nightly update and publishing) |
 
-## Formato do CSV entre a recolha e o importador
+## CSV format between the collector and the importer
 
 ```
 event_id,event_name,event_date,store,city,round,player_a_id,player_a_name,player_b_id,player_b_name,result
 ```
 
-`result` é `A`, `B` ou `D` (empate). Sem `player_b_id` é bye. O `player_*_id` deve ser o id estável do jogador, não o nome.
+`result` is `A`, `B` or `D` (draw). Without `player_b_id` it is a bye. `player_*_id` must be the player's stable id, not their name.
 
-## Experimentar localmente (opcional)
+## Try it locally (optional)
 
 ```bash
 python make_sample_data.py
@@ -54,7 +56,7 @@ python build_web.py --db data/demo.db --out web/index.html --demo
 python -m unittest
 ```
 
-## Privacidade
+## Privacy
 
-O nome mostrado é o nome de utilizador do Play Hub; se não existir, primeiro nome e inicial do apelido, nunca o nome completo.
-Para omitir alguém, põe o id do jogador em `opt_out.txt` (um por linha): a página desaparece e o nome passa a "Jogador anónimo" nas listas dos adversários.
+The name shown is the Play Hub username; if there is none, first name and initial of the surname, never the full name.
+To leave someone out, put the player's id in `opt_out.txt` (one per line): their page disappears and their name becomes "Anonymous player" ("Jogador anónimo" in Portuguese) in their opponents' lists.

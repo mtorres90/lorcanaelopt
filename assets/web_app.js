@@ -114,7 +114,7 @@
       aboutRank: 'Jogadores com pelo menos {min} partidas. Os restantes aparecem no fim da tabela, sem classifica\u00e7\u00e3o.',
       aboutPrivH: 'Privacidade',
       aboutPriv: 'S\u00f3 mostramos o nome que o Play Hub disponibiliza publicamente. Se preferires n\u00e3o aparecer, contacta {contact} e o teu perfil deixa de ser mostrado. As tuas partidas continuam a contar para o Elo dos teus advers\u00e1rios, mas o teu nome \u00e9 substitu\u00eddo por \u201c{anon}\u201d.',
-      contactUnset: 'o contacto do site (por definir)',
+      contactUnset: 'quem gere o site (contacto por definir)',
       notFoundTitle: 'P\u00e1gina n\u00e3o encontrada', notFoundShort: 'N\u00e3o encontrado',
       notFound: 'Este jogador n\u00e3o existe ou foi removido.', backToRanking: 'Voltar ao ranking'
     }

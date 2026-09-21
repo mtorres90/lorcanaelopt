@@ -22,10 +22,13 @@ Site-only changes. Elo calculations, the data pipeline and the nightly workflow 
 - **Player chart showed values above the player's peak.** The top axis label was the peak plus padding
   (e.g. 1041 for a peak of 1021). The axis now labels the real peak and low. The data itself was correct.
 - **Ranking on narrow screens.** Long player names wrap instead of forcing horizontal scrolling.
+- **Portuguese About page before a contact is set.** The privacy paragraph read "contacta o contacto do site";
+  it now reads "contacta quem gere o site (contacto por definir)". Setting `CONTACT_EMAIL` replaces it with the address.
 
 ### Changed
 
-- The About page text now uses the full page width, in line with the tables.
+- The About page text and the footer now use the full page width, in line with the tables, on every page.
+- The README is now in English.
 - The chart's horizontal axis is time-based instead of one step per match.
 
 ### Notes

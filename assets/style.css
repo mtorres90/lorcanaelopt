@@ -236,6 +236,7 @@ td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
 
 /* rodape */
 .foot { padding-top: 2.5rem; padding-bottom: 3rem; color: var(--muted); font-size: .9rem; }
+.foot p { max-width: none; }
 
 /* ecras estreitos: esconde colunas secundarias */
 @media (max-width: 40rem) {
