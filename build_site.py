@@ -465,6 +465,8 @@ A draw counts as half a win.</p>
 so Elo reaches the right level quickly. After that it switches to K = {K_STABLE:.0f}.
 Matches within the same round are calculated using each player's Elo from before that round.
 Byes don't count.</p>
+<p>Bigger events also count for more: matches at an event with 17–32 players move rating 1.25×
+as much as usual, and events with 33 or more players move it 1.5×. Smaller events use the normal rate.</p>
 <h2>Who gets a rank</h2>
 <p>Players with at least {args.min_games} matches. Others appear at the bottom of the table, unranked.</p>
 <h2>Privacy</h2>
