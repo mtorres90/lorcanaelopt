@@ -9,14 +9,15 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
 import db
+from assets_inline import STYLE_CSS, WEB_APP_JS
 from build_site import fold, fmt_date, load_opt_out
-from elo import K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING, compute
-
-HERE = Path(__file__).parent
+from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING,
+                  compute, extra_stats, rival_labels)
 
 SHELL = """<!doctype html>
 <html lang="pt-PT">
@@ -76,16 +77,30 @@ def build(args: argparse.Namespace) -> None:
                          key=lambda s: (-s.games, fold(names.get(s.id, s.id))))
     rank_of = {s.id: i + 1 for i, s in enumerate(ranked)}
 
+    hist_by_player: dict[str, list] = defaultdict(list)
+    for h in history:
+        hist_by_player[h.player].append(h)
+
     per_player: dict[str, list] = {}
     for h in history:
         opp = None if h.opponent in hidden else h.opponent
         per_player.setdefault(h.player, []).append(
             [h.date, h.event_id, h.round, opp, h.score, round(h.rating_after, 1), round(h.delta, 1)])
 
+    def extra_of(pid: str) -> dict:
+        extra = extra_stats(hist_by_player.get(pid, []), hidden)
+        nemesis, victim = rival_labels(extra["h2h"])
+        extra["nemesis"], extra["victim"] = nemesis, victim
+        extra["low"] = round(extra["low"], 1)
+        extra["best_gain"] = round(extra["best_gain"], 1)
+        extra["worst_loss"] = round(extra["worst_loss"], 1)
+        return extra
+
     players = [{
         "id": s.id, "name": names.get(s.id, s.id), "rating": round(s.rating, 1),
         "peak": round(s.peak, 1), "games": s.games, "wins": s.wins, "draws": s.draws,
         "losses": s.losses, "rank": rank_of.get(s.id), "h": per_player.get(s.id, []),
+        "extra": extra_of(s.id),
     } for s in ranked + provisional]
 
     by_event: dict[str, list] = {}
@@ -112,8 +127,8 @@ def build(args: argparse.Namespace) -> None:
     demo = ('<p class="demo">Dados de exemplo: jogadores e resultados inventados para testar o site.</p>'
             if args.demo else "")
     page = (SHELL
-            .replace("__CSS__", (HERE / "assets" / "style.css").read_text(encoding="utf-8"))
-            .replace("__JS__", (HERE / "assets" / "web_app.js").read_text(encoding="utf-8"))
+            .replace("__CSS__", STYLE_CSS)
+            .replace("__JS__", WEB_APP_JS)
             .replace("__DEMO__", demo)
             .replace("__UPDATED__", date.today().strftime("%d/%m/%Y"))
             .replace("__DATA__", payload))
