@@ -77,7 +77,7 @@ body {
 }
 
 a { color: inherit; }
-a:focus-visible, input:focus-visible {
+a:focus-visible, input:focus-visible, button:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
@@ -111,10 +111,21 @@ a:focus-visible, input:focus-visible {
   font-family: var(--font-display); font-weight: 700; font-size: 1.15rem;
   letter-spacing: -.01em; text-decoration: none;
 }
+.top-right { display: flex; align-items: center; gap: 1.5rem; }
 .top nav { display: flex; gap: 1.25rem; }
 .top nav a { text-decoration: none; color: var(--muted); padding: .2rem 0; border-bottom: 2px solid transparent; }
 .top nav a:hover { color: var(--ink); }
 .top nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+
+/* botoes de idioma: duas bandeiras */
+.lang { display: flex; gap: .5rem; }
+.lang-btn {
+  width: 1.9rem; height: 1.3rem; padding: 0; overflow: hidden; line-height: 0; cursor: pointer;
+  background: none; border: 1px solid var(--line-strong); border-radius: 3px; opacity: .55;
+}
+.lang-btn svg { display: block; width: 100%; height: 100%; }
+.lang-btn:hover { opacity: .9; }
+.lang-btn[aria-pressed="true"] { opacity: 1; outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* tipografia */
 h1, h2 { font-family: var(--font-display); letter-spacing: -.02em; line-height: 1.12; }
@@ -122,6 +133,9 @@ h1 { font-size: clamp(1.9rem, 5vw, 2.9rem); font-weight: 700; margin: 1.5rem 0 .
 h2 { font-size: 1.35rem; font-weight: 700; margin: 2.2rem 0 .7rem; }
 p { max-width: 42rem; margin: 0 0 1rem; }
 .lead { color: var(--muted); font-size: 1.05rem; }
+
+/* pagina Sobre: os paragrafos ocupam a largura das tabelas */
+.about p { max-width: none; }
 .crumb { margin: 1.2rem 0 0; font-size: .95rem; }
 .crumb a { color: var(--muted); }
 .crumb + h1 { margin-top: .4rem; }

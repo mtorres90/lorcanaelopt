@@ -21,7 +21,7 @@ from elo import (K_PROVISIONAL, K_STABLE, PROVISIONAL_GAMES, START_RATING,
 WEB_APP_JS = (ASSETS_DIR / "web_app.js").read_text(encoding="utf-8")
 
 SHELL = """<!doctype html>
-<html lang="en">
+<html lang="pt-PT">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -40,16 +40,36 @@ html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 __DEMO__
 <header class="wrap top">
 <a class="brand" href="#/">Lorcana Portugal Elo</a>
-<nav aria-label="Main">
-<a href="#/" data-key="ranking">Ranking</a>
-<a href="#/events" data-key="events">Events</a>
-<a href="#/about" data-key="about">About</a>
+<div class="top-right">
+<nav aria-label="Principal" data-i18n-aria="navMain">
+<a href="#/" data-key="ranking" data-i18n="navRanking">Ranking</a>
+<a href="#/events" data-key="events" data-i18n="navEvents">Eventos</a>
+<a href="#/about" data-key="about" data-i18n="navAbout">Sobre</a>
 </nav>
+<div class="lang" role="group" aria-label="Language / Idioma">
+<button type="button" class="lang-btn" data-lang="pt" aria-label="Portugu&ecirc;s" title="Portugu&ecirc;s" aria-pressed="true">
+<svg viewBox="0 0 30 20" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<rect width="30" height="20" fill="#f00"/>
+<rect width="12" height="20" fill="#060"/>
+<circle cx="12" cy="10" r="4.2" fill="#fc0"/>
+<rect x="10.3" y="8.3" width="3.4" height="3.4" fill="#fff"/>
+</svg></button>
+<button type="button" class="lang-btn" data-lang="en" aria-label="English" title="English" aria-pressed="false">
+<svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<clipPath id="uk-clip"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+<path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+<path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+<path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#uk-clip)" stroke="#c8102e" stroke-width="4"/>
+<path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+<path d="M30,0 v30 M0,15 h60" stroke="#c8102e" stroke-width="6"/>
+</svg></button>
+</div>
+</div>
 </header>
 <main class="wrap" id="app"></main>
 <footer class="wrap foot">
-<p>Fan project, not affiliated with Ravensburger or Disney. Disney Lorcana is a trademark of its respective owners.
-Results sourced from the Ravensburger Play Hub. Updated on __UPDATED__.</p>
+<p id="foot" data-updated="__UPDATED__">Projeto de fãs, sem afiliação à Ravensburger ou à Disney. Disney Lorcana é uma marca registada dos respetivos proprietários.
+Resultados obtidos do Ravensburger Play Hub. Atualizado em __UPDATED__.</p>
 </footer>
 <script>
 var DATA = __DATA__;
@@ -133,7 +153,7 @@ def build(args: argparse.Namespace) -> None:
         "events": events,
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    demo = ('<p class="demo">Sample data: players and results are made up to test the site.</p>'
+    demo = ('<p class="demo" data-i18n="demo">Dados de exemplo: os jogadores e os resultados são inventados para testar o site.</p>'
             if args.demo else "")
     page = (SHELL
             .replace("__CSS__", STYLE_CSS)

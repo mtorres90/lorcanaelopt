@@ -7,6 +7,159 @@
   var app = document.getElementById('app');
   var query = '';
 
+  // ---------- idiomas ----------
+  // Todo o texto visivel vive aqui. {nome} e substituido por t(chave, {nome: valor}).
+  var T = {
+    en: {
+      navMain: 'Main', navRanking: 'Ranking', navEvents: 'Events', navAbout: 'About',
+      demo: 'Sample data: players and results are made up to test the site.',
+      footer: 'Fan project, not affiliated with Ravensburger or Disney. Disney Lorcana is a trademark of its respective owners. Results sourced from the Ravensburger Play Hub. Updated on {date}.',
+      win: 'Win', loss: 'Loss', draw: 'Draw', w: 'W', d: 'D', l: 'L', wdl: 'W\u2013D\u2013L',
+      anon: 'Anonymous player',
+      prev: 'Previous', next: 'Next', pageOf: 'Page {page} of {total}', pagesOf: '{label} pages',
+      months: 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec',
+      // ranking
+      rankingTitle: 'Lorcana Portugal Elo Ranking',
+      rankingLead: '{players} players, {matches} matches and {events} events since {since}.',
+      rankingProv: ' Players with fewer than {min} matches appear at the bottom, unranked.',
+      search: 'Search for a player',
+      empty: 'No player found. Check the spelling of the name.',
+      eloRanking: 'Elo ranking',
+      colRank: 'Rank', colPlayer: 'Player', colElo: 'Elo', colMatches: 'Matches', colLast5: 'Last 5',
+      // player
+      ordinal: function (n) {
+        var r = n % 100;
+        if (r >= 11 && r <= 13) return n + 'th';
+        switch (n % 10) {
+          case 1: return n + 'st';
+          case 2: return n + 'nd';
+          case 3: return n + 'rd';
+          default: return n + 'th';
+        }
+      },
+      standingRanked: '{ord} out of {ranked} ranked players.',
+      standingUnranked: 'Not yet ranked: needs {min} matches, has {games}.',
+      currentElo: 'Current Elo',
+      heroText: 'Peak of {peak}. {w} wins, {d} draws and {l} losses ({pct}% win rate).',
+      secProgression: 'Elo progression', secH2h: 'Head-to-head', secEvents: 'Events', secMatches: 'Matches',
+      chartLabel: 'Elo progression of {name}: from {from} to {to}',
+      statPeak: 'Peak', statLow: 'Low', statEvents: 'Events',
+      statWinStreak: 'Best win streak', statLossStreak: 'Worst loss streak',
+      statBestGain: 'Biggest single-match gain', statWorstDrop: 'Biggest single-match drop',
+      statFavorite: 'As favorite', statUnderdog: 'As underdog', nMatches: '{n} matches',
+      tagNemesis: 'toughest rival', tagVictim: 'favorite victim',
+      colOpponent: 'Opponent', colWinPct: 'Win %', colDate: 'Date', colEvent: 'Event',
+      colRounds: 'Rounds', colChange: 'Change', colRound: 'Round', colResult: 'Result', colEloAfter: 'Elo after',
+      // events
+      eventsTitle: 'Events',
+      eventsLead: 'Events at Portuguese stores with results recorded since {since}.',
+      colStore: 'Store', colPlayers: 'Players',
+      // about
+      aboutTitle: 'About the ranking',
+      aboutWhatH: 'What this is',
+      aboutWhat: 'An Elo ranking of Disney Lorcana players in Portugal, calculated from tournament and league results recorded on the Ravensburger Play Hub. Only events at Portuguese stores count, held since {since}.',
+      aboutHowH: 'How Elo works',
+      aboutHow1: 'Everyone starts with {start} points. After each match, the winner gains points and the loser loses them. Beating a higher-rated opponent is worth more than beating a lower-rated one. A draw counts as half a win.',
+      aboutHow2: 'In the first {prov} matches, swings are bigger (K = {k1}), so Elo reaches the right level quickly. After that it switches to K = {k2}. Matches within the same round are calculated using each player\u2019s Elo from before that round. Byes don\u2019t count.',
+      aboutHow3: 'Bigger events also count for more: matches at an event with 17\u201332 players move rating 1.25\u00d7 as much as usual, and events with 33 or more players move it 1.5\u00d7. Smaller events use the normal rate.',
+      aboutRankH: 'Who gets a rank',
+      aboutRank: 'Players with at least {min} matches. Others appear at the bottom of the table, unranked.',
+      aboutPrivH: 'Privacy',
+      aboutPriv: 'We only show the name that the Play Hub makes publicly available. If you\u2019d rather not appear, contact {contact} and your profile will stop being shown. Your matches still count toward your opponents\u2019 Elo, but your name is replaced with \u201c{anon}\u201d.',
+      contactUnset: 'the site contact (to be set)',
+      // 404
+      notFoundTitle: 'Page not found', notFoundShort: 'Not found',
+      notFound: 'This player doesn\u2019t exist or has been removed.', backToRanking: 'Back to ranking'
+    },
+    pt: {
+      navMain: 'Principal', navRanking: 'Ranking', navEvents: 'Eventos', navAbout: 'Sobre',
+      demo: 'Dados de exemplo: os jogadores e os resultados s\u00e3o inventados para testar o site.',
+      footer: 'Projeto de f\u00e3s, sem afilia\u00e7\u00e3o \u00e0 Ravensburger ou \u00e0 Disney. Disney Lorcana \u00e9 uma marca registada dos respetivos propriet\u00e1rios. Resultados obtidos do Ravensburger Play Hub. Atualizado em {date}.',
+      win: 'Vit\u00f3ria', loss: 'Derrota', draw: 'Empate', w: 'V', d: 'E', l: 'D', wdl: 'V\u2013E\u2013D',
+      anon: 'Jogador an\u00f3nimo',
+      prev: 'Anterior', next: 'Seguinte', pageOf: 'P\u00e1gina {page} de {total}', pagesOf: 'P\u00e1ginas: {label}',
+      months: 'Jan,Fev,Mar,Abr,Mai,Jun,Jul,Ago,Set,Out,Nov,Dez',
+      rankingTitle: 'Ranking Elo Lorcana Portugal',
+      rankingLead: '{players} jogadores, {matches} partidas e {events} eventos desde {since}.',
+      rankingProv: ' Os jogadores com menos de {min} partidas aparecem no fim, sem classifica\u00e7\u00e3o.',
+      search: 'Pesquisar jogador',
+      empty: 'Nenhum jogador encontrado. Verifica a grafia do nome.',
+      eloRanking: 'Ranking Elo',
+      colRank: 'Pos.', colPlayer: 'Jogador', colElo: 'Elo', colMatches: 'Partidas', colLast5: '\u00daltimas 5',
+      ordinal: function (n) { return n + '.\u00ba'; },
+      standingRanked: '{ord} de {ranked} jogadores classificados.',
+      standingUnranked: 'Ainda sem classifica\u00e7\u00e3o: precisa de {min} partidas, tem {games}.',
+      currentElo: 'Elo atual',
+      heroText: 'M\u00e1ximo de {peak}. {w} vit\u00f3rias, {d} empates e {l} derrotas ({pct}% de vit\u00f3rias).',
+      secProgression: 'Evolu\u00e7\u00e3o do Elo', secH2h: 'Frente a frente', secEvents: 'Eventos', secMatches: 'Partidas',
+      chartLabel: 'Evolu\u00e7\u00e3o do Elo de {name}: de {from} para {to}',
+      statPeak: 'M\u00e1ximo', statLow: 'M\u00ednimo', statEvents: 'Eventos',
+      statWinStreak: 'Melhor sequ\u00eancia de vit\u00f3rias', statLossStreak: 'Pior sequ\u00eancia de derrotas',
+      statBestGain: 'Maior ganho numa partida', statWorstDrop: 'Maior perda numa partida',
+      statFavorite: 'Como favorito', statUnderdog: 'Como azar\u00e3o', nMatches: '{n} partidas',
+      tagNemesis: 'maior rival', tagVictim: 'v\u00edtima favorita',
+      colOpponent: 'Advers\u00e1rio', colWinPct: '% vit\u00f3rias', colDate: 'Data', colEvent: 'Evento',
+      colRounds: 'Rondas', colChange: 'Varia\u00e7\u00e3o', colRound: 'Ronda', colResult: 'Resultado', colEloAfter: 'Elo depois',
+      eventsTitle: 'Eventos',
+      eventsLead: 'Eventos em lojas portuguesas com resultados registados desde {since}.',
+      colStore: 'Loja', colPlayers: 'Jogadores',
+      aboutTitle: 'Sobre o ranking',
+      aboutWhatH: 'O que \u00e9',
+      aboutWhat: 'Um ranking Elo de jogadores de Disney Lorcana em Portugal, calculado a partir dos resultados de torneios e ligas registados no Ravensburger Play Hub. S\u00f3 contam eventos em lojas portuguesas, realizados desde {since}.',
+      aboutHowH: 'Como funciona o Elo',
+      aboutHow1: 'Toda a gente come\u00e7a com {start} pontos. Depois de cada partida, o vencedor ganha pontos e o perdedor perde-os. Vencer um advers\u00e1rio com Elo mais alto vale mais do que vencer um com Elo mais baixo. Um empate conta como meia vit\u00f3ria.',
+      aboutHow2: 'Nas primeiras {prov} partidas, as oscila\u00e7\u00f5es s\u00e3o maiores (K = {k1}), para o Elo chegar depressa ao n\u00edvel certo. Depois passa a K = {k2}. As partidas da mesma ronda s\u00e3o calculadas com o Elo que cada jogador tinha antes dessa ronda. Os byes n\u00e3o contam.',
+      aboutHow3: 'Os eventos maiores tamb\u00e9m valem mais: as partidas num evento com 17\u201332 jogadores movem o Elo 1,25\u00d7 mais do que o normal, e os eventos com 33 ou mais jogadores movem-no 1,5\u00d7. Os eventos mais pequenos usam a taxa normal.',
+      aboutRankH: 'Quem tem classifica\u00e7\u00e3o',
+      aboutRank: 'Jogadores com pelo menos {min} partidas. Os restantes aparecem no fim da tabela, sem classifica\u00e7\u00e3o.',
+      aboutPrivH: 'Privacidade',
+      aboutPriv: 'S\u00f3 mostramos o nome que o Play Hub disponibiliza publicamente. Se preferires n\u00e3o aparecer, contacta {contact} e o teu perfil deixa de ser mostrado. As tuas partidas continuam a contar para o Elo dos teus advers\u00e1rios, mas o teu nome \u00e9 substitu\u00eddo por \u201c{anon}\u201d.',
+      contactUnset: 'o contacto do site (por definir)',
+      notFoundTitle: 'P\u00e1gina n\u00e3o encontrada', notFoundShort: 'N\u00e3o encontrado',
+      notFound: 'Este jogador n\u00e3o existe ou foi removido.', backToRanking: 'Voltar ao ranking'
+    }
+  };
+
+  // portugues por omissao; a ultima escolha fica guardada no browser (localStorage) e volta na visita seguinte
+  var lang = 'pt';
+  try {
+    var saved = localStorage.getItem('lang');
+    if (saved && T[saved]) lang = saved;
+  } catch (e) { /* sem armazenamento: fica em portugues */ }
+
+  function t(key, vars) {
+    var s = T[lang][key];
+    if (s == null) s = T.en[key];
+    if (s == null) return key;
+    if (typeof s === 'function') return s(vars);
+    return s.replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? vars[k] : m; });
+  }
+
+  // texto fixo da moldura (cabecalho, rodape, botoes) marcado com data-i18n no HTML
+  function applyStatic() {
+    document.documentElement.lang = lang === 'pt' ? 'pt-PT' : 'en';
+    [].slice.call(document.querySelectorAll('[data-i18n]')).forEach(function (el) {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    [].slice.call(document.querySelectorAll('[data-i18n-aria]')).forEach(function (el) {
+      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+    });
+    var foot = document.getElementById('foot');
+    if (foot) foot.textContent = t('footer', { date: foot.getAttribute('data-updated') });
+    [].slice.call(document.querySelectorAll('.lang-btn')).forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+    });
+  }
+
+  function setLang(l) {
+    if (!T[l] || l === lang) return;
+    lang = l;
+    try { localStorage.setItem('lang', l); } catch (e) { /* ignora */ }
+    applyStatic();
+    route(true);
+  }
+
+  // ---------- utilitarios ----------
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -15,25 +168,15 @@
   function fold(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function fmtDate(iso) { var p = iso.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
   function rnd(x) { return String(Math.round(x)); }
-  function ordinal(n) {
-    var r = n % 100;
-    if (r >= 11 && r <= 13) return n + 'th';
-    switch (n % 10) {
-      case 1: return n + 'st';
-      case 2: return n + 'nd';
-      case 3: return n + 'rd';
-      default: return n + 'th';
-    }
-  }
   function delta(x) {
     var r = Math.round(x);
     if (r === 0) return '0';
     return (r > 0 ? '+' : '\u2212') + Math.abs(r);
   }
   function chip(score) {
-    if (score === 1) return '<span class="chip chip-w" title="Win">W</span>';
-    if (score === 0) return '<span class="chip chip-l" title="Loss">L</span>';
-    return '<span class="chip chip-d" title="Draw">D</span>';
+    if (score === 1) return '<span class="chip chip-w" title="' + t('win') + '">' + t('w') + '</span>';
+    if (score === 0) return '<span class="chip chip-l" title="' + t('loss') + '">' + t('l') + '</span>';
+    return '<span class="chip chip-d" title="' + t('draw') + '">' + t('d') + '</span>';
   }
   function link(id) { return '#/player/' + encodeURIComponent(id); }
   function eventUrl(id) { return 'https://tcg.ravensburgerplay.com/events/' + encodeURIComponent(id); }
@@ -55,15 +198,15 @@
     return '<div class="tablewrap" data-paged' + (id ? ' id="' + id + '"' : '') + '><table class="' + cls + '">' +
       (caption ? '<caption class="sr-only">' + caption + '</caption>' : '') +
       '<thead><tr>' + head + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>' +
-      '<nav class="pager" aria-label="' + label + ' pages"></nav>';
+      '<nav class="pager" aria-label="' + esc(t('pagesOf', { label: label })) + '"></nav>';
   }
 
   function paginate(wrap, rows, nav) {
     var shown = rows, page = 1, prev, next, status;
     if (nav) {
-      nav.innerHTML = '<button type="button" data-dir="-1">Previous</button>' +
+      nav.innerHTML = '<button type="button" data-dir="-1">' + t('prev') + '</button>' +
         '<span class="pager-status" aria-live="polite"></span>' +
-        '<button type="button" data-dir="1">Next</button>';
+        '<button type="button" data-dir="1">' + t('next') + '</button>';
       prev = nav.firstChild; status = prev.nextSibling; next = nav.lastChild;
       nav.addEventListener('click', function (ev) {
         var b = ev.target.closest('button');
@@ -86,7 +229,7 @@
         nav.hidden = shown.length <= PAGE_SIZE;
         prev.disabled = page <= 1;
         next.disabled = page >= total;
-        status.textContent = 'Page ' + page + ' of ' + total;
+        status.textContent = t('pageOf', { page: page, total: total });
       }
       markScrollableTables();
     }
@@ -120,18 +263,19 @@
         '<td class="num wide">' + p.wins + '\u2013' + p.draws + '\u2013' + p.losses + '</td>' +
         '<td class="wide">' + form + '</td></tr>';
     });
-    var provNote = D.players.length > ranked.length
-      ? ' Players with fewer than ' + m.minGames + ' matches appear at the bottom, unranked.' : '';
-    return '<h1>Lorcana Portugal Elo Ranking</h1>' +
-      '<p class="lead">' + D.players.length + ' players, ' + m.matches + ' matches and ' + m.events +
-      ' events since ' + esc(m.since) + '.' + provNote + '</p>' +
-      '<div class="search"><label class="sr-only" for="q">Search for a player</label>' +
-      '<input id="q" type="search" placeholder="Search for a player" autocomplete="off"></div>' +
+    var provNote = D.players.length > ranked.length ? t('rankingProv', { min: m.minGames }) : '';
+    return '<h1>' + t('rankingTitle') + '</h1>' +
+      '<p class="lead">' + t('rankingLead', { players: D.players.length, matches: m.matches, events: m.events,
+        since: esc(m.since) }) + provNote + '</p>' +
+      '<div class="search"><label class="sr-only" for="q">' + t('search') + '</label>' +
+      '<input id="q" type="search" placeholder="' + esc(t('search')) + '" autocomplete="off"></div>' +
       pagedTable('ranking',
-        '<th class="num" scope="col">Rank</th><th scope="col">Player</th><th class="num" scope="col">Elo</th>' +
-        '<th class="num" scope="col">Matches</th><th class="num wide" scope="col">W\u2013D\u2013L</th>' +
-        '<th class="wide" scope="col">Last 5</th>', rows, 'Ranking', 'Elo ranking', 'ranking-table') +
-      '<p id="empty" class="empty" hidden>No player found. Check the spelling of the name.</p>';
+        '<th class="num" scope="col">' + t('colRank') + '</th><th scope="col">' + t('colPlayer') + '</th>' +
+        '<th class="num" scope="col">' + t('colElo') + '</th><th class="num" scope="col">' + t('colMatches') + '</th>' +
+        '<th class="num wide" scope="col">' + t('wdl') + '</th>' +
+        '<th class="wide" scope="col">' + t('colLast5') + '</th>',
+        rows, t('navRanking'), t('eloRanking'), 'ranking-table') +
+      '<p id="empty" class="empty" hidden>' + t('empty') + '</p>';
   }
 
   function wireSearch(pg) {
@@ -152,7 +296,6 @@
   }
 
   // ---------- jogador ----------
-  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function dayNum(iso) { var p = iso.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 86400000; }
 
   // ratings[0] e o Elo inicial; dates[i] e a data de ratings[i] (dates[0] = data da 1a partida).
@@ -160,6 +303,7 @@
   function chart(name, ratings, dates) {
     var w = 640, h = 220, pl = 44, pr = 14, pt = 14, pb = 38, start = D.consts.start;
     var n = ratings.length;
+    var MONTHS = t('months').split(',');
     var peak = Math.max.apply(null, ratings), low = Math.min.apply(null, ratings);
     // margem so na geometria: os rotulos do eixo mostram o pico e o minimo reais
     var lo = low - 10, hi = peak + 10;
@@ -167,13 +311,13 @@
 
     var perDay = {};
     dates.slice(1).forEach(function (d) { perDay[d] = (perDay[d] || 0) + 1; });
-    var seen = {}, t = [dayNum(dates[0])];
+    var seen = {}, tm = [dayNum(dates[0])];
     dates.slice(1).forEach(function (d) {
       seen[d] = (seen[d] || 0) + 1;
-      t.push(dayNum(d) + seen[d] / (perDay[d] + 1));
+      tm.push(dayNum(d) + seen[d] / (perDay[d] + 1));
     });
-    var t0 = t[0], t1 = Math.floor(t[n - 1]) + 1;
-    function x(i) { return pl + (w - pl - pr) * (n > 1 ? (t[i] - t0) / (t1 - t0) : 0.5); }
+    var t0 = tm[0], t1 = Math.floor(tm[n - 1]) + 1;
+    function x(i) { return pl + (w - pl - pr) * (n > 1 ? (tm[i] - t0) / (t1 - t0) : 0.5); }
     function y(v) { return pt + (h - pt - pb) * (hi - v) / (hi - lo); }
     var base = y(start);
     function tick(v) {
@@ -208,7 +352,7 @@
     });
 
     var pts = ratings.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
-    var label = 'Evolu\u00e7\u00e3o do Elo de ' + name + ': de ' + rnd(ratings[0]) + ' para ' + rnd(ratings[n - 1]);
+    var label = t('chartLabel', { name: name, from: rnd(ratings[0]), to: rnd(ratings[n - 1]) });
     return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(label) + '">' +
       months +
       '<line class="chart-base" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + base.toFixed(1) + '" y2="' + base.toFixed(1) + '"/>' +
@@ -229,15 +373,15 @@
     var favPct = e.fav_games ? Math.round((e.fav_wins / e.fav_games) * 100) + ' %' : '\u2013';
     var dogPct = e.dog_games ? Math.round((e.dog_wins / e.dog_games) * 100) + ' %' : '\u2013';
     return '<div class="stat-grid">' +
-      statTile('Peak', rnd(p.peak)) +
-      statTile('Low', rnd(e.low)) +
-      statTile('Events', e.events) +
-      statTile('Best win streak', e.best_win_streak) +
-      statTile('Worst loss streak', e.best_loss_streak) +
-      statTile('Biggest single-match gain', delta(e.best_gain)) +
-      statTile('Biggest single-match drop', delta(e.worst_loss)) +
-      statTile('As favorite', favPct, e.fav_games + ' matches') +
-      statTile('As underdog', dogPct, e.dog_games + ' matches') +
+      statTile(t('statPeak'), rnd(p.peak)) +
+      statTile(t('statLow'), rnd(e.low)) +
+      statTile(t('statEvents'), e.events) +
+      statTile(t('statWinStreak'), e.best_win_streak) +
+      statTile(t('statLossStreak'), e.best_loss_streak) +
+      statTile(t('statBestGain'), delta(e.best_gain)) +
+      statTile(t('statWorstDrop'), delta(e.worst_loss)) +
+      statTile(t('statFavorite'), favPct, t('nMatches', { n: e.fav_games })) +
+      statTile(t('statUnderdog'), dogPct, t('nMatches', { n: e.dog_games })) +
       '</div>';
   }
 
@@ -246,20 +390,20 @@
     if (!list.length) return '';
     var rows = list.map(function (o) {
       var opp = byId[o.id];
-      var name = opp ? opp.name : 'Anonymous player';
+      var name = opp ? opp.name : t('anon');
       var cell = opp ? '<a href="' + link(o.id) + '">' + esc(name) + '</a>' : esc(name);
       var pct = Math.round(((o.wins + 0.5 * o.draws) / o.games) * 100);
       var tag = '';
-      if (o.id === p.extra.nemesis) tag = ' <span class="tag tag-l">toughest rival</span>';
-      else if (o.id === p.extra.victim) tag = ' <span class="tag tag-w">favorite victim</span>';
+      if (o.id === p.extra.nemesis) tag = ' <span class="tag tag-l">' + t('tagNemesis') + '</span>';
+      else if (o.id === p.extra.victim) tag = ' <span class="tag tag-w">' + t('tagVictim') + '</span>';
       return '<tr><td>' + cell + tag + '</td><td class="num">' + o.games + '</td>' +
         '<td class="num wide">' + o.wins + '\u2013' + o.draws + '\u2013' + o.losses + '</td>' +
         '<td class="num">' + pct + ' %</td></tr>';
     });
-    return '<h2>Head-to-head</h2>' + pagedTable('matches',
-      '<th scope="col">Opponent</th><th class="num" scope="col">Matches</th>' +
-      '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Win %</th>',
-      rows, 'Head-to-head');
+    return '<h2>' + t('secH2h') + '</h2>' + pagedTable('matches',
+      '<th scope="col">' + t('colOpponent') + '</th><th class="num" scope="col">' + t('colMatches') + '</th>' +
+      '<th class="num wide" scope="col">' + t('wdl') + '</th><th class="num" scope="col">' + t('colWinPct') + '</th>',
+      rows, t('secH2h'));
   }
 
   function eventsSection(p) {
@@ -282,10 +426,11 @@
         '<td class="num">' + e.rounds + '</td><td class="num wide">' + e.w + '\u2013' + e.d + '\u2013' + e.l + '</td>' +
         '<td class="num">' + delta(e.end - e.start) + '</td></tr>';
     });
-    return '<h2>Events</h2>' + pagedTable('matches',
-      '<th scope="col">Date</th><th scope="col">Event</th><th class="num" scope="col">Rounds</th>' +
-      '<th class="num wide" scope="col">W\u2013D\u2013L</th><th class="num" scope="col">Change</th>',
-      rows, 'Events');
+    return '<h2>' + t('secEvents') + '</h2>' + pagedTable('matches',
+      '<th scope="col">' + t('colDate') + '</th><th scope="col">' + t('colEvent') + '</th>' +
+      '<th class="num" scope="col">' + t('colRounds') + '</th>' +
+      '<th class="num wide" scope="col">' + t('wdl') + '</th><th class="num" scope="col">' + t('colChange') + '</th>',
+      rows, t('secEvents'));
   }
 
   function playerView(id) {
@@ -294,31 +439,32 @@
     var ratings = [D.consts.start].concat(p.h.map(function (h) { return h[5]; }));
     var dates = [p.h.length ? p.h[0][0] : '1970-01-01'].concat(p.h.map(function (h) { return h[0]; }));
     var standing = p.rank
-      ? ordinal(p.rank) + ' out of ' + D.meta.ranked + ' ranked players.'
-      : 'Not yet ranked: needs ' + D.meta.minGames + ' matches, has ' + p.games + '.';
+      ? t('standingRanked', { ord: t('ordinal', p.rank), ranked: D.meta.ranked })
+      : t('standingUnranked', { min: D.meta.minGames, games: p.games });
     var pct = p.games ? Math.round(((p.wins + 0.5 * p.draws) / p.games) * 100) : 0;
     var rows = p.h.slice().reverse().map(function (h) {
       var ev = D.events[h[1]] || {};
       var opp = h[3] && byId[h[3]]
-        ? '<a href="' + link(h[3]) + '">' + esc(byId[h[3]].name) + '</a>' : 'Anonymous player';
+        ? '<a href="' + link(h[3]) + '">' + esc(byId[h[3]].name) + '</a>' : t('anon');
       var evName = ev.name || h[1];
       return '<tr><td>' + fmtDate(h[0]) + '</td><td class="txt">' + eventLink(h[1], evName) + '</td><td class="num">' + h[2] +
         '</td><td>' + opp + '</td><td>' + chip(h[4]) + '</td><td class="num">' + rnd(h[5]) +
         ' <span class="delta">(' + delta(h[6]) + ')</span></td></tr>';
     });
     var realNameLine = p.realName ? '<p class="crumb-sub">' + esc(p.realName) + '</p>' : '';
-    return '<p class="crumb"><a href="#/">Ranking</a></p><h1>' + esc(p.name) + '</h1>' + realNameLine +
-      '<div class="hero"><p class="bignum" aria-label="Current Elo">' + rnd(p.rating) + '</p>' +
-      '<p class="hero-text">' + standing + '<br>Peak of ' + rnd(p.peak) + '. ' + p.wins + ' wins, ' +
-      p.draws + ' draws and ' + p.losses + ' losses (' + pct + '% win rate).</p></div>' +
-      '<h2>Elo progression</h2>' + chart(p.name, ratings, dates) +
+    return '<p class="crumb"><a href="#/">' + t('navRanking') + '</a></p><h1>' + esc(p.name) + '</h1>' + realNameLine +
+      '<div class="hero"><p class="bignum" aria-label="' + esc(t('currentElo')) + '">' + rnd(p.rating) + '</p>' +
+      '<p class="hero-text">' + standing + '<br>' + t('heroText', { peak: rnd(p.peak), w: p.wins, d: p.draws,
+        l: p.losses, pct: pct }) + '</p></div>' +
+      '<h2>' + t('secProgression') + '</h2>' + chart(p.name, ratings, dates) +
       statGrid(p) +
       h2hSection(p) +
       eventsSection(p) +
-      '<h2>Matches</h2>' + pagedTable('matches',
-        '<th scope="col">Date</th><th scope="col">Event</th><th class="num" scope="col">Round</th>' +
-        '<th scope="col">Opponent</th><th scope="col">Result</th><th class="num" scope="col">Elo after</th>',
-        rows, 'Matches');
+      '<h2>' + t('secMatches') + '</h2>' + pagedTable('matches',
+        '<th scope="col">' + t('colDate') + '</th><th scope="col">' + t('colEvent') + '</th>' +
+        '<th class="num" scope="col">' + t('colRound') + '</th><th scope="col">' + t('colOpponent') + '</th>' +
+        '<th scope="col">' + t('colResult') + '</th><th class="num" scope="col">' + t('colEloAfter') + '</th>',
+        rows, t('secMatches'));
   }
 
   // ---------- events ----------
@@ -332,10 +478,12 @@
         '</td><td class="txt wide">' + esc(where) +
         '</td><td class="num wide">' + e.players + '</td><td class="num">' + e.matches + '</td></tr>';
     });
-    return '<h1>Events</h1><p class="lead">Events at Portuguese stores with results recorded since ' +
-      esc(D.meta.since) + '.</p>' + pagedTable('matches',
-      '<th scope="col">Date</th><th scope="col">Event</th><th class="wide" scope="col">Store</th>' +
-      '<th class="num wide" scope="col">Players</th><th class="num" scope="col">Matches</th>', rows, 'Events');
+    return '<h1>' + t('eventsTitle') + '</h1><p class="lead">' + t('eventsLead', { since: esc(D.meta.since) }) +
+      '</p>' + pagedTable('matches',
+      '<th scope="col">' + t('colDate') + '</th><th scope="col">' + t('colEvent') + '</th>' +
+      '<th class="wide" scope="col">' + t('colStore') + '</th>' +
+      '<th class="num wide" scope="col">' + t('colPlayers') + '</th><th class="num" scope="col">' + t('colMatches') + '</th>',
+      rows, t('eventsTitle'));
   }
 
   // ---------- about ----------
@@ -343,45 +491,37 @@
     var c = D.consts, m = D.meta;
     var contact = m.contact
       ? '<a href="mailto:' + esc(m.contact) + '">' + esc(m.contact) + '</a>'
-      : 'the site contact (to be set)';
-    return '<h1>About the ranking</h1>' +
-      '<h2>What this is</h2><p>An Elo ranking of Disney Lorcana players in Portugal, calculated from tournament ' +
-      'and league results recorded on the Ravensburger Play Hub. Only events at Portuguese stores count, held ' +
-      'since ' + esc(m.since) + '.</p>' +
-      '<h2>How Elo works</h2><p>Everyone starts with ' + c.start + ' points. After each match, the winner gains ' +
-      'points and the loser loses them. Beating a higher-rated opponent is worth more than beating a lower-rated ' +
-      'one. A draw counts as half a win.</p>' +
-      '<p>In the first ' + c.prov + ' matches, swings are bigger (K = ' + c.k1 + '), so Elo reaches the right ' +
-      'level quickly. After that it switches to K = ' + c.k2 + '. Matches within the same round are calculated ' +
-      'using each player\u2019s Elo from before that round. Byes don\u2019t count.</p>' +
-      '<p>Bigger events also count for more: matches at an event with 17\u201332 players move rating 1.25\u00d7 as ' +
-      'much as usual, and events with 33 or more players move it 1.5\u00d7. Smaller events use the normal rate.</p>' +
-      '<h2>Who gets a rank</h2><p>Players with at least ' + m.minGames + ' matches. Others appear at the bottom ' +
-      'of the table, unranked.</p>' +
-      '<h2>Privacy</h2><p>We only show the name that the Play Hub makes publicly available. If you\u2019d rather not ' +
-      'appear, contact ' + contact + ' and your profile will stop being shown. Your matches still count toward ' +
-      'your opponents\u2019 Elo, but your name is replaced with \u201cAnonymous player\u201d.</p>';
+      : t('contactUnset');
+    return '<div class="about"><h1>' + t('aboutTitle') + '</h1>' +
+      '<h2>' + t('aboutWhatH') + '</h2><p>' + t('aboutWhat', { since: esc(m.since) }) + '</p>' +
+      '<h2>' + t('aboutHowH') + '</h2><p>' + t('aboutHow1', { start: c.start }) + '</p>' +
+      '<p>' + t('aboutHow2', { prov: c.prov, k1: c.k1, k2: c.k2 }) + '</p>' +
+      '<p>' + t('aboutHow3') + '</p>' +
+      '<h2>' + t('aboutRankH') + '</h2><p>' + t('aboutRank', { min: m.minGames }) + '</p>' +
+      '<h2>' + t('aboutPrivH') + '</h2><p>' + t('aboutPriv', { contact: contact, anon: t('anon') }) + '</p></div>';
   }
 
   function notFound() {
-    return '<h1>Page not found</h1><p>This player doesn\u2019t exist or has been removed. ' +
-      '<a href="#/">Back to ranking</a>.</p>';
+    return '<h1>' + t('notFoundTitle') + '</h1><p>' + t('notFound') +
+      ' <a href="#/">' + t('backToRanking') + '</a>.</p>';
   }
 
   // ---------- router ----------
   var first = true;
-  function route() {
+  // keep = true quando so mudou o idioma: volta a desenhar sem saltar para o topo
+  function route(keep) {
+    keep = keep === true;
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('/');
-    var html, key = 'ranking', title = 'Ranking';
+    var html, key = 'ranking', title = t('navRanking');
     if (parts[0] === 'player' && parts[1]) {
       var id = decodeURIComponent(parts.slice(1).join('/'));
       html = playerView(id);
-      title = byId[id] ? byId[id].name : 'Not found';
+      title = byId[id] ? byId[id].name : t('notFoundShort');
     } else if (parts[0] === 'events') {
-      html = eventsView(); key = 'events'; title = 'Events';
+      html = eventsView(); key = 'events'; title = t('navEvents');
     } else if (parts[0] === 'about') {
-      html = aboutView(); key = 'about'; title = 'About';
+      html = aboutView(); key = 'about'; title = t('navAbout');
     } else {
       html = rankingView();
     }
@@ -392,14 +532,18 @@
       else a.removeAttribute('aria-current');
     });
     wireSearch(wirePagers()['ranking-table']);
-    if (!first) {
+    if (!first && !keep) {
       window.scrollTo(0, 0);
       var h1 = app.querySelector('h1');
       if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
     }
     first = false;
   }
+  [].slice.call(document.querySelectorAll('.lang-btn')).forEach(function (b) {
+    b.addEventListener('click', function () { setLang(b.getAttribute('data-lang')); });
+  });
   window.addEventListener('hashchange', route);
   window.addEventListener('resize', markScrollableTables);
+  applyStatic();
   route();
 })();
