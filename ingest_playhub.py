@@ -122,9 +122,25 @@ def player_key(p: dict) -> str:
     return str(val) if val is not None else ""
 
 
-def player_name(p: dict) -> str:
-    """Nome a mostrar (normalmente o nickname do Play Hub); senao primeiro nome + inicial do apelido."""
-    shown = dig(p, "best_identifier", "display_name", "username", "user.username", "screen_name", "name")
+def player_name(rel: dict) -> str:
+    """Nome a mostrar: o nickname real do jogador nesse evento.
+
+    Confirmado contra a API real (setembro 2026): cada player_match_relationship
+    tem DOIS identificadores diferentes, a profundidades diferentes:
+      - user_event_status.best_identifier -> o nickname real (ex.: "Mimez",
+        "[RBT] Cachapa", "Marcelo") - o que a pagina do evento mostra.
+      - player.best_identifier -> uma versao abreviada "Primeiro U." (ex.: "Miguel T"),
+        usada so nalgumas partes da interface, NUNCA o nickname escolhido pelo jogador.
+    Por isso o nickname (user_event_status) tem sempre prioridade; o resto so serve
+    de reserva para o caso raro de faltar.
+
+    Aceita tanto a relacao completa (com "player" e "user_event_status") como so o
+    objeto do jogador, para servir chamadas antigas/testes.
+    """
+    p = rel.get("player") if isinstance(rel.get("player"), dict) else rel
+    ues = rel.get("user_event_status") if isinstance(rel.get("user_event_status"), dict) else {}
+    shown = (dig(ues, "best_identifier") or
+             dig(p, "best_identifier", "display_name", "username", "user.username", "screen_name", "name"))
     if shown:
         return str(shown).strip()
     first = str(dig(p, "first_name", "user.first_name", default="")).strip()
@@ -147,8 +163,10 @@ def parse_match(m: dict):
     tem first_name/last_name separados do nickname (o caso mais comum).
 
     Campos reais do Play Hub: player_match_relationships[].player.{id,best_identifier},
-    winning_player (id do jogador), match_is_intentional_draw, match_is_unintentional_draw,
-    match_is_bye. Perdas duplas e partidas sem resultado registado ficam de fora.
+    player_match_relationships[].user_event_status.best_identifier (o nickname real -
+    ver player_name()), winning_player (id do jogador), match_is_intentional_draw,
+    match_is_unintentional_draw, match_is_bye. Perdas duplas e partidas sem resultado
+    registado ficam de fora.
     """
     if m.get("match_is_bye"):
         return None
@@ -184,7 +202,7 @@ def parse_match(m: dict):
             result = "A" if ga > gb else "B" if gb > ga else "D"
     if result is None:
         return None
-    return a_id, player_name(a), player_real_name(a), b_id, player_name(b), player_real_name(b), result
+    return a_id, player_name(a_rel), player_real_name(a), b_id, player_name(b_rel), player_real_name(b), result
 
 
 def round_ids_of(detail: dict) -> list[tuple[int, str]]:
