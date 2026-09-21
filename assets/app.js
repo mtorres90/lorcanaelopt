@@ -20,3 +20,16 @@
     empty.hidden = shown !== 0;
   });
 })();
+
+// Sinaliza tabelas com scroll horizontal (nomes de eventos longos) para mostrar
+// o desvanecido do lado direito em vez de parecerem simplesmente cortadas.
+(function () {
+  function mark() {
+    [].slice.call(document.querySelectorAll('.tablewrap')).forEach(function (w) {
+      if (w.scrollWidth > w.clientWidth + 1) w.classList.add('scrolls');
+      else w.classList.remove('scrolls');
+    });
+  }
+  mark();
+  window.addEventListener('resize', mark);
+})();
