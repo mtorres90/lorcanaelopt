@@ -133,7 +133,7 @@ h1 { font-size: clamp(1.9rem, 5vw, 2.9rem); font-weight: 700; margin: 1.5rem 0 .
 h2 { font-size: 1.35rem; font-weight: 700; margin: 2.2rem 0 .7rem; }
 p { max-width: 42rem; margin: 0 0 1rem; }
 .lead { color: var(--muted); font-size: 1.05rem; }
-.note { color: var(--muted); font-size: .9rem; margin-top: 1rem; }
+.note { color: var(--muted); font-size: .9rem; margin-top: 1rem; max-width: none; }
 
 /* pagina Sobre: os paragrafos ocupam a largura das tabelas */
 .about p { max-width: none; }
