@@ -112,7 +112,7 @@ def h2h_section(extra: dict, name_of, slugs: dict[str, str]) -> str:
         if oid == extra["nemesis"]:
             tag = ' <span class="tag tag-l">toughest rival</span>'
         elif oid == extra["victim"]:
-            tag = ' <span class="tag tag-w">favorite victim</span>'
+            tag = ' <span class="tag tag-w">favorable opponent</span>'
         rows.append(
             f'<tr><td>{cell}{tag}</td><td class="num">{o["games"]}</td>'
             f'<td class="num wide">{o["wins"]}–{o["draws"]}–{o["losses"]}</td>'

@@ -227,7 +227,20 @@ td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
 .tag-l { background: var(--loss-bg); color: var(--loss); }
 .tag-w { background: var(--win-bg); color: var(--win); }
 
+.chart-wrap { position: relative; }
 .chart { width: 100%; height: auto; display: block; }
+.chart:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.chart-hit { fill: transparent; cursor: crosshair; touch-action: pan-y; }
+.chart-cursor { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart-hover-dot { fill: var(--surface); stroke: var(--sapphire); stroke-width: 3; }
+.chart-tip {
+  position: absolute; z-index: 2; pointer-events: none; white-space: nowrap;
+  display: flex; flex-direction: column; padding: .4rem .65rem; font-size: .8rem; line-height: 1.35;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+}
+.chart-tip strong { font-family: var(--font-display); font-size: 1.2rem; line-height: 1.2; }
+.chart-tip .muted { color: var(--muted); max-width: 16rem; overflow: hidden; text-overflow: ellipsis; }
 .chart-base { stroke: var(--line-strong); stroke-dasharray: 4 4; }
 .chart-line { fill: none; stroke: var(--sapphire); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .chart-dot { fill: var(--sapphire); }

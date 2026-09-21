@@ -6,6 +6,8 @@
   D.players.forEach(function (p) { byId[p.id] = p; });
   var app = document.getElementById('app');
   var query = '';
+  var chartModel = null;      // pontos do grafico do jogador atual (para o tooltip)
+  var hideChartTip = null;
 
   // ---------- idiomas ----------
   // Todo o texto visivel vive aqui. {nome} e substituido por t(chave, {nome: valor}).
@@ -43,11 +45,12 @@
       heroText: 'Peak of {peak}. {w} wins, {d} draws and {l} losses ({pct}% win rate).',
       secProgression: 'Elo progression', secH2h: 'Head-to-head', secEvents: 'Events', secMatches: 'Matches',
       chartLabel: 'Elo progression of {name}: from {from} to {to}',
+      chartStart: 'Starting Elo', chartVs: 'vs {opp}',
       statPeak: 'Peak', statLow: 'Low', statEvents: 'Events',
       statWinStreak: 'Best win streak', statLossStreak: 'Worst loss streak',
       statBestGain: 'Biggest single-match gain', statWorstDrop: 'Biggest single-match drop',
       statFavorite: 'As favorite', statUnderdog: 'As underdog', nMatches: '{n} matches',
-      tagNemesis: 'toughest rival', tagVictim: 'favorite victim',
+      tagNemesis: 'toughest rival', tagVictim: 'favorable opponent',
       colOpponent: 'Opponent', colWinPct: 'Win %', colDate: 'Date', colEvent: 'Event',
       colRounds: 'Rounds', colChange: 'Change', colRound: 'Round', colResult: 'Result', colEloAfter: 'Elo after',
       // events
@@ -93,11 +96,12 @@
       heroText: 'M\u00e1ximo de {peak}. {w} vit\u00f3rias, {d} empates e {l} derrotas ({pct}% de vit\u00f3rias).',
       secProgression: 'Evolu\u00e7\u00e3o do Elo', secH2h: 'Frente a frente', secEvents: 'Eventos', secMatches: 'Partidas',
       chartLabel: 'Evolu\u00e7\u00e3o do Elo de {name}: de {from} para {to}',
+      chartStart: 'Elo inicial', chartVs: 'vs {opp}',
       statPeak: 'M\u00e1ximo', statLow: 'M\u00ednimo', statEvents: 'Eventos',
       statWinStreak: 'Melhor sequ\u00eancia de vit\u00f3rias', statLossStreak: 'Pior sequ\u00eancia de derrotas',
       statBestGain: 'Maior ganho numa partida', statWorstDrop: 'Maior perda numa partida',
       statFavorite: 'Como favorito', statUnderdog: 'Como azar\u00e3o', nMatches: '{n} partidas',
-      tagNemesis: 'maior rival', tagVictim: 'v\u00edtima favorita',
+      tagNemesis: 'maior rival', tagVictim: 'oponente favor\u00e1vel',
       colOpponent: 'Advers\u00e1rio', colWinPct: '% vit\u00f3rias', colDate: 'Data', colEvent: 'Evento',
       colRounds: 'Rondas', colChange: 'Varia\u00e7\u00e3o', colRound: 'Ronda', colResult: 'Resultado', colEloAfter: 'Elo depois',
       eventsTitle: 'Eventos',
@@ -300,7 +304,7 @@
 
   // ratings[0] e o Elo inicial; dates[i] e a data de ratings[i] (dates[0] = data da 1a partida).
   // O eixo x e o tempo: partidas do mesmo dia repartem-se pela largura desse dia.
-  function chart(name, ratings, dates) {
+  function chart(name, ratings, dates, info) {
     var w = 640, h = 220, pl = 44, pr = 14, pt = 14, pb = 38, start = D.consts.start;
     var n = ratings.length;
     var MONTHS = t('months').split(',');
@@ -351,15 +355,95 @@
         !drawn || bd.m.getUTCMonth() === 0 ? bd.m.getUTCFullYear() : '');
     });
 
-    var pts = ratings.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+    var xs = ratings.map(function (v, i) { return x(i); });
+    var ys = ratings.map(function (v) { return y(v); });
+    var pts = ratings.map(function (v, i) { return xs[i].toFixed(1) + ',' + ys[i].toFixed(1); }).join(' ');
     var label = t('chartLabel', { name: name, from: rnd(ratings[0]), to: rnd(ratings[n - 1]) });
-    return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(label) + '">' +
+    chartModel = { w: w, h: h, xs: xs, ys: ys, ratings: ratings, dates: dates, info: info };
+    return '<div class="chart-wrap"><svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" role="img" tabindex="0" aria-label="' +
+      esc(label) + '">' +
       months +
       '<line class="chart-base" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + base.toFixed(1) + '" y2="' + base.toFixed(1) + '"/>' +
       '<text class="chart-tick" x="' + (pl - 6) + '" y="' + (base + 4).toFixed(1) + '" text-anchor="end">' + rnd(start) + '</text>' +
       tick(peak) + tick(low) +
       '<polyline class="chart-line" points="' + pts + '"/>' +
-      '<circle class="chart-dot" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(ratings[n - 1]).toFixed(1) + '" r="4"/></svg>';
+      '<circle class="chart-dot" cx="' + xs[n - 1].toFixed(1) + '" cy="' + ys[n - 1].toFixed(1) + '" r="4"/>' +
+      '<g class="chart-hover" visibility="hidden"><line class="chart-cursor" y1="' + pt + '" y2="' + (h - pb) + '"/>' +
+      '<circle class="chart-hover-dot" r="5"/></g>' +
+      '<rect class="chart-hit" x="0" y="0" width="' + w + '" height="' + (h - pb) + '"/></svg>' +
+      '<div class="chart-tip" role="status" aria-live="polite" hidden></div></div>';
+  }
+
+  // tooltip do grafico: rato, toque e teclado (setas). Mostra o Elo, a data e o resultado da partida.
+  function wireChart() {
+    var m = chartModel, wrap = app.querySelector('.chart-wrap');
+    hideChartTip = null;
+    if (!m || !wrap) return;
+    var svg = wrap.querySelector('svg'), tip = wrap.querySelector('.chart-tip');
+    var g = svg.querySelector('.chart-hover'), cursor = g.querySelector('line'), dot = g.querySelector('circle');
+    var hit = svg.querySelector('.chart-hit');
+    var cur = -1;
+
+    function nearest(vx) {
+      var best = 0, bd = Infinity;
+      for (var i = 0; i < m.xs.length; i++) {
+        var dd = Math.abs(m.xs[i] - vx);
+        if (dd < bd) { bd = dd; best = i; }
+      }
+      return best;
+    }
+    function tipHtml(i) {
+      var v = '<strong>' + rnd(m.ratings[i]) + '</strong>', inf = m.info[i];
+      if (!inf) return v + '<span>' + t('chartStart') + '</span>';
+      var opp = inf.opp && byId[inf.opp] ? esc(byId[inf.opp].name) : t('anon');
+      var res = inf.score === 1 ? t('win') : inf.score === 0 ? t('loss') : t('draw');
+      return v + '<span>' + fmtDate(inf.date) + '</span><span class="muted">' + res + ' ' + delta(inf.delta) +
+        ' \u00b7 ' + t('chartVs', { opp: opp }) + '</span>';
+    }
+    function show(i) {
+      cur = i;
+      var r = svg.getBoundingClientRect(), sx = r.width / m.w, sy = r.height / m.h;
+      var px = m.xs[i] * sx, py = m.ys[i] * sy;
+      cursor.setAttribute('x1', m.xs[i].toFixed(1)); cursor.setAttribute('x2', m.xs[i].toFixed(1));
+      dot.setAttribute('cx', m.xs[i].toFixed(1)); dot.setAttribute('cy', m.ys[i].toFixed(1));
+      g.setAttribute('visibility', 'visible');
+      tip.innerHTML = tipHtml(i);
+      tip.hidden = false;
+      var tw = tip.offsetWidth, th = tip.offsetHeight;
+      var left = px + 14;
+      if (left + tw > r.width) left = px - tw - 14;
+      // nao cabe de nenhum dos lados (grafico estreito): centra por cima/baixo do ponto
+      if (left < 0) left = Math.min(Math.max(0, px - tw / 2), r.width - tw);
+      var top = py - th - 12;
+      if (top < 0) top = py + 14;
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+    }
+    function hide() {
+      cur = -1;
+      g.setAttribute('visibility', 'hidden');
+      tip.hidden = true;
+    }
+    function fromPointer(ev) {
+      var r = svg.getBoundingClientRect();
+      show(nearest((ev.clientX - r.left) * (m.w / r.width)));
+    }
+    hideChartTip = hide;
+    hit.addEventListener('pointermove', fromPointer);
+    hit.addEventListener('pointerdown', fromPointer);
+    hit.addEventListener('pointerleave', function (ev) { if (ev.pointerType === 'mouse') hide(); });
+    svg.addEventListener('blur', hide);
+    svg.addEventListener('keydown', function (ev) {
+      var n = m.xs.length, next;
+      if (ev.key === 'ArrowLeft') next = cur < 0 ? n - 1 : cur - 1;
+      else if (ev.key === 'ArrowRight') next = cur < 0 ? n - 1 : cur + 1;
+      else if (ev.key === 'Home') next = 0;
+      else if (ev.key === 'End') next = n - 1;
+      else if (ev.key === 'Escape') { hide(); return; }
+      else return;
+      ev.preventDefault();
+      show(Math.max(0, Math.min(n - 1, next)));
+    });
   }
 
   function statTile(label, value, sub) {
@@ -438,6 +522,7 @@
     if (!p) return notFound();
     var ratings = [D.consts.start].concat(p.h.map(function (h) { return h[5]; }));
     var dates = [p.h.length ? p.h[0][0] : '1970-01-01'].concat(p.h.map(function (h) { return h[0]; }));
+    var info = [null].concat(p.h.map(function (h) { return { date: h[0], opp: h[3], score: h[4], delta: h[6] }; }));
     var standing = p.rank
       ? t('standingRanked', { ord: t('ordinal', p.rank), ranked: D.meta.ranked })
       : t('standingUnranked', { min: D.meta.minGames, games: p.games });
@@ -456,7 +541,7 @@
       '<div class="hero"><p class="bignum" aria-label="' + esc(t('currentElo')) + '">' + rnd(p.rating) + '</p>' +
       '<p class="hero-text">' + standing + '<br>' + t('heroText', { peak: rnd(p.peak), w: p.wins, d: p.draws,
         l: p.losses, pct: pct }) + '</p></div>' +
-      '<h2>' + t('secProgression') + '</h2>' + chart(p.name, ratings, dates) +
+      '<h2>' + t('secProgression') + '</h2>' + chart(p.name, ratings, dates, info) +
       statGrid(p) +
       h2hSection(p) +
       eventsSection(p) +
@@ -513,6 +598,7 @@
     keep = keep === true;
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('/');
+    chartModel = null;
     var html, key = 'ranking', title = t('navRanking');
     if (parts[0] === 'player' && parts[1]) {
       var id = decodeURIComponent(parts.slice(1).join('/'));
@@ -531,6 +617,7 @@
       if (a.getAttribute('data-key') === key) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
+    wireChart();
     wireSearch(wirePagers()['ranking-table']);
     if (!first && !keep) {
       window.scrollTo(0, 0);
@@ -541,6 +628,9 @@
   }
   [].slice.call(document.querySelectorAll('.lang-btn')).forEach(function (b) {
     b.addEventListener('click', function () { setLang(b.getAttribute('data-lang')); });
+  });
+  document.addEventListener('pointerdown', function (ev) {
+    if (hideChartTip && !ev.target.closest('.chart-wrap')) hideChartTip();
   });
   window.addEventListener('hashchange', route);
   window.addEventListener('resize', markScrollableTables);

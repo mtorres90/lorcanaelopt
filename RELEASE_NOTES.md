@@ -15,6 +15,10 @@ Site-only changes. Elo calculations, the data pipeline and the nightly workflow 
 - **Months on the Elo chart.** The player chart now has a time axis with a label at the start of each month
   (and the year on the first month and each January), so progression can be read over time.
 
+- **Hover values on the Elo chart.** Hover (or tap, on a phone) anywhere on a player's chart to see the Elo at
+  that point, the date, the result and change, and the opponent. With the keyboard, focus the chart and use
+  the left/right arrow keys (Home/End jump to the start/latest, Esc closes).
+
 ### Fixed
 
 - **Events table cut off the Matches column.** Long event and store names pushed the last column out of view.
@@ -29,6 +33,8 @@ Site-only changes. Elo calculations, the data pipeline and the nightly workflow 
 
 - The About page text and the footer now use the full page width, in line with the tables, on every page.
 - The README is now in English.
+- Head-to-head tag renamed: "favorite victim" is now **"favorable opponent"** in English and
+  **"oponente favorável"** in Portuguese (previously "vítima favorita").
 - The chart's horizontal axis is time-based instead of one step per match.
 
 ### Notes
