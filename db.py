@@ -8,8 +8,9 @@ from elo import Match
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS players (
-    id   TEXT PRIMARY KEY,
-    name TEXT NOT NULL
+    id        TEXT PRIMARY KEY,
+    name      TEXT NOT NULL,
+    real_name TEXT
 );
 CREATE TABLE IF NOT EXISTS events (
     id    TEXT PRIMARY KEY,
@@ -31,12 +32,22 @@ CREATE INDEX IF NOT EXISTS idx_matches_event ON matches(event_id);
 """
 
 
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Adiciona colunas novas a bases de dados criadas antes delas existirem.
+    SQLite nao tem 'ADD COLUMN IF NOT EXISTS', por isso verificamos primeiro."""
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(players)")}
+    if "real_name" not in cols:
+        conn.execute("ALTER TABLE players ADD COLUMN real_name TEXT")
+        conn.commit()
+
+
 def connect(path: str) -> sqlite3.Connection:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
 
 
