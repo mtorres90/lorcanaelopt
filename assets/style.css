@@ -112,8 +112,8 @@ a:focus-visible, input:focus-visible, button:focus-visible {
   letter-spacing: -.01em; text-decoration: none;
 }
 .top-right { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.5rem; }
-.top nav { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
-.top nav a { text-decoration: none; color: var(--muted); padding: .2rem 0; border-bottom: 2px solid transparent; }
+.top nav { display: flex; flex-wrap: wrap; gap: .3rem 1.25rem; }
+.top nav a { text-decoration: none; color: var(--muted); padding: .35rem 0; border-bottom: 2px solid transparent; }
 .top nav a:hover { color: var(--ink); }
 .top nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
 
@@ -277,6 +277,22 @@ td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
 .chart-grid { stroke: var(--line); stroke-width: 1; }
 .chart-tick { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
 
+/* calculadora top cut */
+.field { display: block; margin: 0 0 1rem; max-width: 22rem; }
+.field span { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .3rem; }
+.field input {
+  width: 100%; padding: .7rem .9rem; font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: 8px;
+}
+.tc-inline-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 .9rem; max-width: 22rem; }
+.field.tc-inline { max-width: none; }
+.tc-row-actions { margin: .2rem 0 1.4rem; }
+.btn {
+  font: inherit; font-weight: 600; color: var(--surface); background: var(--ink);
+  border: 1px solid var(--ink); border-radius: 8px; padding: .75rem 1.4rem; cursor: pointer;
+}
+.btn:hover { opacity: .88; }
+
 /* rodape */
 .foot { padding-top: 2.5rem; padding-bottom: 3rem; color: var(--muted); font-size: .9rem; }
 
@@ -286,4 +302,9 @@ td.txt { white-space: normal; overflow-wrap: anywhere; min-width: 9rem; }
   th, td { padding: .65rem .6rem; }
   td.txt { min-width: 0; }
   th, td { font-size: .9rem; }
+  .top { padding-top: .9rem; padding-bottom: .9rem; gap: .4rem 1rem; }
+  .top nav { gap: .2rem 1rem; font-size: .95rem; }
+  .stat-tile { flex-basis: 8rem; min-width: 8rem; }
+  .ach-grid { grid-template-columns: 1fr; }
+  h2 { margin: 1.8rem 0 .6rem; }
 }

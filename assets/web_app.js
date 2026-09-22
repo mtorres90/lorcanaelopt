@@ -13,7 +13,8 @@
   // Todo o texto visivel vive aqui. {nome} e substituido por t(chave, {nome: valor}).
   var T = {
     en: {
-      navMain: 'Main', navRanking: 'Ranking', navIntl: 'International', navAwards: 'Player of the week', navEvents: 'Events', navAbout: 'About',
+      navMain: 'Main', navRanking: 'Ranking', navIntl: 'International', navAwards: 'Player of the week', navEvents: 'Events',
+      navTopCut: 'Top Cut Calculator', navAbout: 'About',
       demo: 'Sample data: players and results are made up to test the site.',
       footer: 'Fan project, not affiliated with Ravensburger or Disney. Disney Lorcana is a trademark of its respective owners. Results sourced from the Ravensburger Play Hub. Updated on {date}.',
       win: 'Win', loss: 'Loss', draw: 'Draw', w: 'W', d: 'D', l: 'L', wdl: 'W\u2013D\u2013L',
@@ -129,10 +130,24 @@
       contactUnset: 'the site contact (to be set)',
       // 404
       notFoundTitle: 'Page not found', notFoundShort: 'Not found',
-      notFound: 'This player doesn\u2019t exist or has been removed.', backToRanking: 'Back to ranking'
+      notFound: 'This player doesn\u2019t exist or has been removed.', backToRanking: 'Back to ranking',
+      // top cut calculator
+      topcutTitle: 'Top Cut Calculator',
+      topcutLead: 'Will you make the cut? Enter your event\u2019s size and your current record to see, for every possible result in your remaining rounds, the chance it\u2019s enough to make the cut.',
+      topcutFieldPlayers: 'Total players', topcutFieldRounds: 'Total Swiss rounds', topcutFieldCut: 'Cut size (top \u2026)',
+      topcutFieldRecord: 'Your current record',
+      topcutFieldWins: 'Wins', topcutFieldLosses: 'Losses', topcutFieldDraws: 'Draws',
+      topcutCalculateBtn: 'Calculate',
+      topcutCalculating: 'Calculating\u2026',
+      topcutResultsH: 'Results',
+      topcutColPoints: 'Points',
+      topcutColChance: 'Chance to make top {n}',
+      topcutBadInputs: 'Check the fields: total players, rounds and cut size must be positive, and your wins + losses + draws can\u2019t be more than the total rounds.',
+      topcutExplain: 'How this is computed: your remaining rounds are turned into every possible final record, and each one\u2019s final points are fixed. What isn\u2019t fixed is the rest of the field, so for every hypothetical this simulates everyone else\u2019s entire tournament (all rounds, at 50% win / 45% loss / 5% draw per round, a generic-opponent assumption) to see how often your total is enough. Ties for the last spot(s) are broken randomly each run, standing in for real tiebreakers (OMW%/GW%/OGW%) that can\u2019t be predicted in advance. It doesn\u2019t know the field\u2019s actual current standings \u2014 only your own record \u2014 so treat this as a general odds estimate, not a live calculation tied to your specific opponents.'
     },
     pt: {
-      navMain: 'Principal', navRanking: 'Ranking', navIntl: 'Internacional', navAwards: 'Jogador da semana', navEvents: 'Eventos', navAbout: 'Sobre',
+      navMain: 'Principal', navRanking: 'Ranking', navIntl: 'Internacional', navAwards: 'Jogador da semana', navEvents: 'Eventos',
+      navTopCut: 'Calculadora Top Cut', navAbout: 'Sobre',
       demo: 'Dados de exemplo: os jogadores e os resultados s\u00e3o inventados para testar o site.',
       footer: 'Projeto de f\u00e3s, sem afilia\u00e7\u00e3o \u00e0 Ravensburger ou \u00e0 Disney. Disney Lorcana \u00e9 uma marca registada dos respetivos propriet\u00e1rios. Resultados obtidos do Ravensburger Play Hub. Atualizado em {date}.',
       win: 'Vit\u00f3ria', loss: 'Derrota', draw: 'Empate', w: 'V', d: 'E', l: 'D', wdl: 'V\u2013E\u2013D',
@@ -234,7 +249,20 @@
       aboutPriv: 'S\u00f3 mostramos o nome que o Play Hub disponibiliza publicamente. Se preferires n\u00e3o aparecer, contacta {contact} e o teu perfil deixa de ser mostrado. As tuas partidas continuam a contar para o Elo dos teus advers\u00e1rios, mas o teu nome \u00e9 substitu\u00eddo por \u201c{anon}\u201d.',
       contactUnset: 'quem gere o site (contacto por definir)',
       notFoundTitle: 'P\u00e1gina n\u00e3o encontrada', notFoundShort: 'N\u00e3o encontrado',
-      notFound: 'Este jogador n\u00e3o existe ou foi removido.', backToRanking: 'Voltar ao ranking'
+      notFound: 'Este jogador n\u00e3o existe ou foi removido.', backToRanking: 'Voltar ao ranking',
+      // calculadora top cut
+      topcutTitle: 'Calculadora Top Cut',
+      topcutLead: 'Vais passar ao corte? Indica o tamanho do teu evento e o teu registo atual para ver, para cada resultado poss\u00edvel nas rondas que faltam, a probabilidade de chegar para o corte.',
+      topcutFieldPlayers: 'N\u00famero total de jogadores', topcutFieldRounds: 'Rondas su\u00ed\u00e7as no total', topcutFieldCut: 'Tamanho do corte (top \u2026)',
+      topcutFieldRecord: 'O teu registo atual',
+      topcutFieldWins: 'Vit\u00f3rias', topcutFieldLosses: 'Derrotas', topcutFieldDraws: 'Empates',
+      topcutCalculateBtn: 'Calcular',
+      topcutCalculating: 'A calcular\u2026',
+      topcutResultsH: 'Resultados',
+      topcutColPoints: 'Pontos',
+      topcutColChance: 'Probabilidade de fazer top {n}',
+      topcutBadInputs: 'Verifica os campos: o n\u00famero de jogadores, as rondas e o tamanho do corte t\u00eam de ser positivos, e vit\u00f3rias + derrotas + empates n\u00e3o pode passar do total de rondas.',
+      topcutExplain: 'Como isto \u00e9 calculado: as rondas que te faltam d\u00e3o origem a todos os registos finais poss\u00edveis, e os pontos finais de cada um ficam fixos. O que n\u00e3o fica fixo \u00e9 o resto do campo, por isso cada hip\u00f3tese simula o torneio inteiro de todos os outros jogadores (todas as rondas, a 50% vit\u00f3ria / 45% derrota / 5% empate por ronda, uma hip\u00f3tese gen\u00e9rica de advers\u00e1rio) para ver com que frequ\u00eancia o teu total chega. Os empates no \u00faltimo lugar do corte s\u00e3o desfeitos ao acaso em cada simula\u00e7\u00e3o, como substituto dos crit\u00e9rios de desempate reais (OMW%/GW%/OGW%) que n\u00e3o d\u00e1 para prever de antem\u00e3o. N\u00e3o sabe a classifica\u00e7\u00e3o real e atual do campo \u2014 s\u00f3 o teu pr\u00f3prio registo \u2014 por isso trata isto como uma estimativa geral, n\u00e3o um c\u00e1lculo ao vivo ligado aos teus advers\u00e1rios espec\u00edficos.'
     }
   };
 
@@ -869,6 +897,147 @@
       ' <a href="#/">' + t('backToRanking') + '</a>.</p>';
   }
 
+  // ---------- top cut calculator ----------
+  // Enumerates every (win, loss, draw) split of the rounds you have left, from your
+  // current record. The rest of the field's actual standings aren't known to this
+  // page (Play Hub doesn't let this site fetch them), so for each hypothetical this
+  // simulates every other player's whole tournament from a flat per-round win rate
+  // to estimate how often your fixed total is good enough. This is a general odds
+  // estimate, not a live calculation tied to real opponents.
+  var tcState = { players: 30, rounds: 5, cut: 8, wins: 0, losses: 0, draws: 0 };
+
+  function tcEnumerateFinalRecords(wins, losses, draws, remaining) {
+    var out = [];
+    for (var w = 0; w <= remaining; w++) {
+      for (var d = 0; d <= remaining - w; d++) {
+        var l = remaining - w - d;
+        out.push({ wins: wins + w, losses: losses + l, draws: draws + d, points: 3 * (wins + w) + (draws + d) });
+      }
+    }
+    out.sort(function (a, b) { return (b.wins - a.wins) || (a.losses - b.losses) || (b.draws - a.draws); });
+    return out;
+  }
+
+  // small seeded PRNG so results are reproducible within a single calculation run
+  function tcRng(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      var x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function tcChanceToMakeCut(hypotheticalPoints, otherCount, totalRounds, cutSize, trials, winProb, drawProb, rng) {
+    var made = 0;
+    var finals = new Array(otherCount + 1);
+    for (var tr = 0; tr < trials; tr++) {
+      for (var p = 0; p < otherCount; p++) {
+        var pts = 0;
+        for (var r = 0; r < totalRounds; r++) {
+          var x = rng();
+          if (x < drawProb) pts += 1;
+          else if (x < drawProb + (1 - drawProb) * winProb) pts += 3;
+        }
+        finals[p] = pts;
+      }
+      finals[otherCount] = hypotheticalPoints;
+      var better = 0, tiedAbove = 0, tiedTotal = 0;
+      for (var i = 0; i <= otherCount; i++) {
+        if (i === otherCount) continue;
+        if (finals[i] > hypotheticalPoints) better++;
+        else if (finals[i] === hypotheticalPoints) tiedTotal++;
+      }
+      // rank if all ties above mine resolve worse-for-me first, i.e. worst case among tied
+      // then randomize a placement among the tied group to stand in for real tiebreakers
+      var myPlacementAmongTied = Math.floor(rng() * (tiedTotal + 1));
+      var rank = better + myPlacementAmongTied + 1;
+      if (rank <= cutSize) made++;
+    }
+    return made / trials;
+  }
+
+  function tcOpsBudgetTrials(otherCount, totalRounds) {
+    var perTrial = Math.max(1, otherCount * totalRounds);
+    return Math.max(2000, Math.min(20000, Math.round(6000000 / perTrial)));
+  }
+
+  function tcResultsTable(recs, cutSize) {
+    var rows = recs.map(function (r) {
+      return '<tr><td>' + r.wins + '–' + r.losses + '–' + r.draws + '</td>' +
+        '<td class="num">' + r.points + '</td>' +
+        '<td class="num elo">' + (r.chance * 100).toFixed(1) + '%</td></tr>';
+    }).join('');
+    return '<h2>' + t('topcutResultsH') + '</h2>' +
+      '<div class="tablewrap"><table class="ranking"><thead><tr>' +
+      '<th scope="col">' + t('wdl') + '</th><th class="num" scope="col">' + t('topcutColPoints') + '</th>' +
+      '<th class="num" scope="col">' + t('topcutColChance', { n: cutSize }) + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function topCutView() {
+    return '<h1>' + t('topcutTitle') + '</h1>' +
+      '<p class="lead">' + t('topcutLead') + '</p>' +
+      '<label class="field"><span>' + t('topcutFieldPlayers') + '</span>' +
+        '<input type="number" id="tc-players" min="2" value="' + tcState.players + '"></label>' +
+      '<label class="field"><span>' + t('topcutFieldRounds') + '</span>' +
+        '<input type="number" id="tc-rounds" min="1" value="' + tcState.rounds + '"></label>' +
+      '<label class="field"><span>' + t('topcutFieldCut') + '</span>' +
+        '<input type="number" id="tc-cut" min="1" value="' + tcState.cut + '"></label>' +
+      '<h2>' + t('topcutFieldRecord') + '</h2>' +
+      '<div class="tc-inline-fields">' +
+      '<label class="field tc-inline"><span>' + t('topcutFieldWins') + '</span>' +
+        '<input type="number" id="tc-wins" min="0" value="' + tcState.wins + '"></label>' +
+      '<label class="field tc-inline"><span>' + t('topcutFieldLosses') + '</span>' +
+        '<input type="number" id="tc-losses" min="0" value="' + tcState.losses + '"></label>' +
+      '<label class="field tc-inline"><span>' + t('topcutFieldDraws') + '</span>' +
+        '<input type="number" id="tc-draws" min="0" value="' + tcState.draws + '"></label>' +
+      '</div>' +
+      '<div class="tc-row-actions"><button type="button" class="btn" id="tc-calculate">' + t('topcutCalculateBtn') + '</button></div>' +
+      '<div id="tc-results" aria-live="polite"></div>' +
+      '<p class="note">' + t('topcutExplain') + '</p>';
+  }
+
+  function wireTopCut() {
+    var playersInput = document.getElementById('tc-players');
+    if (!playersInput) return;
+    var roundsInput = document.getElementById('tc-rounds');
+    var cutInput = document.getElementById('tc-cut');
+    var winsInput = document.getElementById('tc-wins');
+    var lossesInput = document.getElementById('tc-losses');
+    var drawsInput = document.getElementById('tc-draws');
+    var results = document.getElementById('tc-results');
+
+    [['players', playersInput], ['rounds', roundsInput], ['cut', cutInput],
+     ['wins', winsInput], ['losses', lossesInput], ['draws', drawsInput]].forEach(function (pair) {
+      pair[1].addEventListener('input', function () { tcState[pair[0]] = parseInt(pair[1].value, 10); });
+    });
+
+    document.getElementById('tc-calculate').addEventListener('click', function () {
+      var players = parseInt(playersInput.value, 10), rounds = parseInt(roundsInput.value, 10),
+        cut = parseInt(cutInput.value, 10), wins = parseInt(winsInput.value, 10),
+        losses = parseInt(lossesInput.value, 10), draws = parseInt(drawsInput.value, 10);
+      var played = wins + losses + draws;
+      if (!(players >= 2) || !(rounds >= 1) || !(cut >= 1) || isNaN(wins) || isNaN(losses) || isNaN(draws) ||
+          wins < 0 || losses < 0 || draws < 0 || played > rounds) {
+        results.innerHTML = '<p class="empty">' + t('topcutBadInputs') + '</p>';
+        return;
+      }
+      results.innerHTML = '<p class="note">' + t('topcutCalculating') + '</p>';
+      setTimeout(function () {
+        var remaining = rounds - played;
+        var otherCount = players - 1;
+        var trials = tcOpsBudgetTrials(otherCount, rounds);
+        var rng = tcRng((Date.now() ^ (players * 2654435761)) & 0xffffffff);
+        var recs = tcEnumerateFinalRecords(wins, losses, draws, remaining);
+        recs.forEach(function (rec) {
+          rec.chance = tcChanceToMakeCut(rec.points, otherCount, rounds, cut, trials, 0.5, 0.05, rng);
+        });
+        results.innerHTML = tcResultsTable(recs, cut);
+        markScrollableTables();
+      }, 20);
+    });
+  }
+
   // ---------- router ----------
   var first = true;
   // keep = true quando so mudou o idioma: volta a desenhar sem saltar para o topo
@@ -888,6 +1057,8 @@
       html = intlView(); key = 'international'; title = t('navIntl');
     } else if (parts[0] === 'awards') {
       html = awardsView(); key = 'awards'; title = t('navAwards');
+    } else if (parts[0] === 'topcut') {
+      html = topCutView(); key = 'topcut'; title = t('navTopCut');
     } else if (parts[0] === 'about') {
       html = aboutView(); key = 'about'; title = t('navAbout');
     } else {
@@ -901,6 +1072,7 @@
     });
     wireChart();
     wireSearch(wirePagers()['ranking-table']);
+    wireTopCut();
     if (!first && !keep) {
       window.scrollTo(0, 0);
       var h1 = app.querySelector('h1');

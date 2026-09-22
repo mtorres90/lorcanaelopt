@@ -1,5 +1,21 @@
 # Release notes
 
+## 2026-09-22 (third release): Top Cut Calculator
+
+### New
+
+- **Top Cut Calculator page.** Enter an event's size (players, Swiss rounds, cut size) and your current record to
+  see, for every possible result in the rounds you have left, the chance it's enough to make the cut. Runs
+  entirely in the browser: Play Hub doesn't allow this site to fetch a real event's live standings, so the rest
+  of the field is simulated from a flat 50% win / 45% loss / 5% draw per round instead. See the README for how the
+  estimate is computed.
+
+### Changed
+
+- **Mobile layout improvements:** larger tap targets on the nav links, the calculator's Wins/Losses/Draws fields
+  now stay evenly spaced instead of wrapping awkwardly, achievement cards stack to one column, and stat tiles and
+  header spacing are tighter on narrow screens.
+
 ## 2026-09-22 (second release): Achievements
 
 ### New

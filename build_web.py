@@ -49,6 +49,7 @@ __DEMO__
 <a href="#/international" data-key="international" data-i18n="navIntl">Internacional</a>
 <a href="#/awards" data-key="awards" data-i18n="navAwards">Jogador da semana</a>
 <a href="#/events" data-key="events" data-i18n="navEvents">Eventos</a>
+<a href="#/topcut" data-key="topcut" data-i18n="navTopCut">Calculadora Top Cut</a>
 <a href="#/about" data-key="about" data-i18n="navAbout">Sobre</a>
 </nav>
 <div class="lang" role="group" aria-label="Language / Idioma">

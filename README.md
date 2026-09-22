@@ -70,6 +70,21 @@ Each player page has an **Achievements** section (earned ones first, rarest on t
 
 Rarity is automatic, from the share of listed players who have that level: Common 40%+, Uncommon 15-40%, Rare 5-15%, Epic 1-5%, Legendary under 1%. The date shown is when the level was first reached, and an achievement, once earned, stays. To change a threshold, edit `DEFS` in `achievements.py`; the texts (English and Portuguese) are in `assets/web_app.js` under `ach_<id>_n` and `ach_<id>_d`, and a test checks that none is missing.
 
+## Top Cut Calculator
+
+A standalone page (no ranking data involved) where a visitor enters their event's size (total players, Swiss
+rounds, cut size) and current record. It lists every possible result for the rounds left and, for each one, the
+chance it's enough to make the cut.
+
+- Play Hub blocks this site from fetching an event's live standings in a visitor's browser (CORS), so the page
+  can't look up a real event by link. Instead it simulates the rest of the field from scratch: every other player
+  plays out the whole tournament at a flat 50% win / 45% loss / 5% draw per round, which stands in for a real
+  field without needing its actual current standings.
+- Ties for the last cut spot(s) are broken at random in each simulated run, standing in for real tiebreakers
+  (OMW%/GW%/OGW%) that can't be predicted ahead of time.
+- Everything runs client-side in `assets/web_app.js` (`topCutView`, `wireTopCut` and the `tc*` helper functions);
+  nothing is sent anywhere.
+
 ## International Elo (elorcana.com)
 
 Each player page shows the player's international Elo from [elorcana.com](https://elorcana.com), linked to their profile there, and the **International** page ranks the Portuguese players by it.
